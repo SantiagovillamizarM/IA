@@ -34,19 +34,27 @@ def paginas() -> dict[str, list[st.Page]]:
     nav: dict[str, list[st.Page]] = {
         "Opinar": [pagina("inicio", "Inicio", "🏁", default=True), pagina("emitir", "Emitir opinión", "🗣️")],
         "Explorar": [pagina("consultar", "Consultar opiniones", "🔎"), pagina("dashboard", "Dashboard", "📊"),
-                     pagina("comparar", "Comparar", "⚖️")],
+                     pagina("comparar", "Comparar", "⚖️"), pagina("mapa", "Mapa", "🗺️"),
+                     pagina("informes", "Informes", "📄")],
     }
+    if c.modo_sql:
+        nav["Explorar"].insert(3, pagina("resumen", "¿Qué opina la comunidad?", "📝"))
     cuenta = [pagina("cuenta", "Mi cuenta", "👤")] if c.modo_sql else []
     nav["Cuenta"] = [*cuenta, pagina("privacidad", "Privacidad", "🔒")]
+    gestion: list[st.Page] = []
+    if c.modo_sql and rol in (Rol.MODERADOR.value, Rol.ADMIN.value):
+        gestion += [pagina("moderacion", "Moderación", "🛡️"), pagina("lotes", "Lotes", "📥")]
     if c.modo_sql and rol == Rol.ADMIN.value:
-        nav["Gestión"] = [pagina("admin", "Administración", "⚙️")]
+        gestion += [pagina("calidad", "Calidad", "🎯"), pagina("admin", "Administración", "⚙️")]
+    if gestion:
+        nav["Gestión"] = gestion
     return nav
 
 
 def main() -> None:
     st.set_page_config(page_title="Paddock Global", page_icon="🏁", layout="wide")
     estilos.inyectar()
-    nav = st.navigation(paginas())
+    nav = st.navigation(paginas(), expanded=True)  # sin «N more»: Gestión siempre visible
     st.title("🏁 Paddock Global")
     st.caption("Análisis de sentimientos LangChain · opiniones del mundo de las carreras")
     barra_lateral.render()

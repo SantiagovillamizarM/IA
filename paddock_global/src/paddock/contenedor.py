@@ -203,6 +203,70 @@ class Contenedor:
     def gestionar_catalogo(self) -> GestionarCatalogo:
         return GestionarCatalogo(catalogo=self.repo_catalogo, auditoria=self.repo_auditoria, reloj=self.reloj)
 
+    # ------------------------------------------------------------ v3
+    @cached_property
+    def resumidor(self) -> Any:
+        if self.resumidor_forzado is not None:
+            return self.resumidor_forzado
+        from paddock.adaptadores.llm.resumidor import crear_resumidor
+
+        return crear_resumidor(self.ajustes)
+
+    @cached_property
+    def moderacion(self) -> Any:
+        from paddock.aplicacion.moderacion import Moderacion
+
+        return Moderacion(opiniones=self.repo_opiniones, denuncias=self.repo_denuncias, auditoria=self.repo_auditoria,
+                          reloj=self.reloj, ids=self.generador_id)
+
+    @cached_property
+    def calidad(self) -> Any:
+        from paddock.aplicacion.calidad import CalidadModelo
+
+        return CalidadModelo(opiniones=self.repo_opiniones, metricas=self.repo_metricas)
+
+    @cached_property
+    def clasificar_lote(self) -> Any:
+        from paddock.aplicacion.clasificar_lote import ClasificarLote
+
+        return ClasificarLote(catalogo=self.repo_catalogo, trabajos=self.repo_trabajos, auditoria=self.repo_auditoria,
+                              reloj=self.reloj, ids=self.generador_id)
+
+    @cached_property
+    def procesador_lotes(self) -> Any:
+        from paddock.aplicacion.clasificar_lote import ProcesadorLotes
+
+        return ProcesadorLotes(trabajos=self.repo_trabajos, opiniones=self.repo_opiniones, emitir=self.emitir_opinion,
+                               limitador=self.limitador, pausa_s=self.ajustes.LOTE_PAUSA_S)
+
+    @cached_property
+    def resumir_comunidad(self) -> Any:
+        from paddock.aplicacion.resumir_comunidad import ResumirComunidad
+
+        return ResumirComunidad(catalogo=self.repo_catalogo, opiniones=self.repo_opiniones,
+                                resumenes=self.repo_resumenes, resumidor=self.resumidor, reloj=self.reloj,
+                                limitador=self.limitador, auditoria=self.repo_auditoria)
+
+    @cached_property
+    def informes(self) -> Any:
+        from functools import partial
+
+        from paddock.adaptadores.informes.pdf import generar_pdf
+        from paddock.aplicacion.generar_informe import GenerarInforme
+
+        return GenerarInforme(catalogo=self.repo_catalogo, opiniones=self.repo_opiniones,
+                              resumenes=self.repo_resumenes if self.modo_sql else None, reloj=self.reloj,
+                              renderizar=partial(generar_pdf, zona=self.ajustes.ZONA_HORARIA),
+                              permitir_anonimos=self.ajustes.PERMITIR_ANONIMOS or not self.modo_sql)
+
+    @cached_property
+    def tokens_api(self) -> Any:
+        from paddock.adaptadores.seguridad.hash import hash_token, nuevo_token_api
+        from paddock.aplicacion.tokens_api import TokensApi
+
+        return TokensApi(tokens=self.repo_tokens, usuarios=self.repo_usuarios, auditoria=self.repo_auditoria,
+                         reloj=self.reloj, ids=self.generador_id, generar=nuevo_token_api, hashear=hash_token)
+
 
 def crear_contenedor(ajustes: Ajustes | None = None, **kwargs: Any) -> Contenedor:
     from paddock.config import obtener_ajustes

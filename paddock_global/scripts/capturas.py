@@ -113,6 +113,10 @@ async def capturar(url: str, salida: Path, esperar: list[str], escribir: list[st
                 await cdp.evaluar("[...document.querySelectorAll('[data-testid=\"stFormSubmitButton\"] button')][0].click()")
                 await cdp.esperar_texto("Cerrar sesión")
             for destino in ir:
+                for _ in range(20):  # espera a que el menú tenga el enlace
+                    if await cdp.evaluar(f"!!document.querySelector('a[href$=\"/{destino}\"]')"):
+                        break
+                    await asyncio.sleep(0.5)
                 await cdp.evaluar(f"document.querySelector('a[href$=\"/{destino}\"]').click()")
                 await asyncio.sleep(3)
             for t in esperar:

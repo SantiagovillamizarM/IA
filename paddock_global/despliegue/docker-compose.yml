@@ -59,6 +59,36 @@ services:
     restart: unless-stopped
     logging: *logs
 
+  # --- v3: API REST (publicada por Plesk bajo /api/) y worker de lotes. Misma imagen, otro comando.
+  api:
+    image: paddock-global:latest
+    <<: *entorno
+    command: ["api"]
+    ports:
+      - "127.0.0.1:${PUERTO_API:-8000}:8000"
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/salud', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    logging: *logs
+
+  worker:
+    image: paddock-global:latest
+    <<: *entorno
+    command: ["worker"]
+    healthcheck:
+      disable: true
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *logs
+
 volumes:
   pgdatos:
   ollamamodelos:

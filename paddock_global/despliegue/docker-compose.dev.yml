@@ -12,3 +12,17 @@ services:
       STREAMLIT_SERVER_FILE_WATCHER_TYPE: poll
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  api:
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL_DEV:-http://host.docker.internal:11434}
+      API_DOCS: "true"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  worker:
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL_DEV:-http://host.docker.internal:11434}
+      LOTE_PAUSA_S: "0"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

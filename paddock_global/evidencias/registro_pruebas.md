@@ -68,3 +68,11 @@ Comparación caso por caso: [comparacion_prompt_1.0_vs_2.0.md](comparacion_promp
 ### Interfaz (AppTest, modo SQL)
 
 Anónimo consulta pero no emite; inicio de sesión y opinión guardada con `usuario_id` y aspectos; mensaje genérico y bloqueo tras 5 intentos; un aficionado no ve «Administración» y la página la deniega igualmente; el admin ve sus 4 pestañas; el dashboard y el comparador cargan; cerrar sesión limpia el estado. Capturas: [dashboard](capturas/v2_dashboard.png), [administración tras un inicio de sesión real](capturas/v2_administracion.png).
+
+## v3 · 2026-11-10
+
+- Tests automáticos: moderación, calidad, lotes (reprocesar no duplica; una fila con error no detiene el lote; pausa por el tope diario), resúmenes (mínimo, caché, límite y map-reduce en grupos de 30), PDF con tildes, API (401 sin token o revocado, 422, 429, filtros, paginación y error 500 sin traza) y páginas de v3 con AppTest.
+- Resumen real con `gemini-3.5-flash-lite` (Le Mans, 8 opiniones) e [informe PDF de ejemplo](informe_ejemplo_lemans.pdf).
+- Docker: API (401/201), lote procesado por el `worker` (2 guardadas, 1 no pertinente; la fila 1, positiva, salió *neutro* con `qwen2.5:3b`), respaldo y restauración de PostgreSQL.
+- `scripts/evaluar.py`: sin revisiones humanas todavía, termina avisando que hacen falta. **No se inventaron etiquetas humanas.**
+- Capturas: [mapa](capturas/v3_mapa.png), [moderación](capturas/v3_moderacion.png).

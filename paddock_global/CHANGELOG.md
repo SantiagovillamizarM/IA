@@ -21,3 +21,14 @@
 - Prompt 2.0 con `AnalisisDetallado` (aspectos, ironía, intensidad y entidades literales filtradas en código) y comparación real con el 1.0.
 - Dashboard, comparador y administración con Plotly.
 - Docker multietapa con usuario sin privilegios y `HEALTHCHECK`; `docker-compose.yml` (app, PostgreSQL y Ollama opcional, solo en 127.0.0.1) y `docker-compose.dev.yml`; configuración de nginx para Plesk; CI con ruff, mypy, cobertura ≥ 80 %, pip-audit y construcción de la imagen.
+
+## v3.0.0 · 2026-11-10 · Plataforma
+
+- Moderación con revisión humana: cola priorizada, confirmar o corregir con nota (historial completo, la etiqueta del modelo intacta), denuncias y ocultación sin borrado.
+- Calidad del modelo: exactitud, precisión, recall, F1, matriz de confusión, latencia media y p95, errores por tipo, tokens, exportación del conjunto de evaluación y `scripts/evaluar.py` (reclasifica sin guardar).
+- Lotes: validación completa del CSV, cola en `trabajos_lote`, worker en un contenedor aparte, ids `uuid5`, pausa ante el tope diario y progreso en vivo.
+- Resúmenes de comunidad con map-reduce, caché y límite de regeneración.
+- Mapa mundial con Plotly; informes PDF con fpdf2 y DejaVu Sans (barras vectoriales, sin kaleido).
+- API REST FastAPI con tokens personales revocables, errores uniformes y documentación desactivable.
+- `docker-compose.yml` con `api` y `worker`; `scripts/respaldo_bd.sh` (respaldo y restauración probados); `DESPLIEGUE.md`.
+- Navegación expandida (`expanded=True`): con más de 10 páginas Streamlit ocultaba la sección «Gestión» tras «N more».

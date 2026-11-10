@@ -38,17 +38,29 @@ El enunciado pide `enableCORS = false`. En Streamlit 1.67 esa opción **desactiv
 - `enableCORS = true` y `enableXsrfProtection = true` (desarrollo y producción).
 - En producción, `allowedHosts` y `corsAllowedOrigins` limitados al dominio (`DOMINIO` en `.env`), escritos por `scripts/configurar_streamlit.py` al arrancar el contenedor. Protegen contra el *DNS rebinding* y los orígenes cruzados.
 
-## 3. Secretos
+## 3. Controles añadidos en v3
+
+| Riesgo | Control | Dónde | Prueba |
+| --- | --- | --- | --- |
+| API sin autenticación (A01/A07) | `POST /api/opiniones` exige `Authorization: Bearer pg_…`. Tokens personales de 256 bits que se muestran una sola vez, se guardan como SHA-256, son revocables (máx. 5 activos) y se auditan. Lectura anónima solo si `PERMITIR_ANONIMOS=true`. La salida pública nunca incluye `usuario_id` | `aplicacion/tokens_api.py`, `api/auth.py`, `api/esquemas.py` | `test_v3.py::test_api_post_sin_token_y_con_token_revocado_401` |
+| Abuso de la API (LLM10) | Mismo limitador por usuario que la interfaz (429 uniforme); `limite` ≤ 100 por página | `api/rutas/opiniones.py` | `test_v3.py::test_api_no_pertinente_validacion_y_limite`, `test_api_filtros_paginacion…` |
+| Divulgación por errores de la API (LLM02/A05) | Respuestas uniformes `{"error": {"codigo", "mensaje"}}` sin trazas; los errores inesperados devuelven 500 genérico. `/api/docs` y `/api/openapi.json` desactivados en producción (`API_DOCS=false`) | `api/main.py` | `test_v3.py::test_api_error_interno_sin_traza`, `test_api_salud_catalogo_y_docs_desactivados` |
+| Integridad de las etiquetas (A08/LLM09) | La revisión humana se guarda aparte (historial completo); la etiqueta del modelo nunca se sobrescribe. Ocultar en vez de borrar. Una denuncia pendiente por usuario | `aplicacion/moderacion.py` | `test_v3.py::test_revision_humana_no_cambia…`, `test_cola_priorizada_denuncias_y_ocultar` |
+| Lotes (LLM10/A04) | CSV de máx. 500 filas y 1 MB validado entero antes de encolar; ids `uuid5` (reprocesar no duplica); respeta el tope diario global (el lote se pausa); una fila con error nunca se guarda como neutra | `aplicacion/clasificar_lote.py`, `worker/` | `test_v3.py::test_lote_*`, `test_una_fila_con_error…` |
+| Resúmenes (LLM01/LLM02) | Usan solo opiniones guardadas, con los delimitadores neutralizados y sin nombres de usuario; generar exige sesión y está limitado (2 cada 10 minutos) | `aplicacion/resumir_comunidad.py`, `adaptadores/llm/resumidor.py` | `test_v3.py::test_resumen_minimo_cache_y_regenerar` |
+| Calidad del modelo | Solo admin; las métricas usan etiquetas humanas reales, nunca inventadas | `aplicacion/calidad.py` | `test_v3.py::test_calidad_solo_admin_y_solo_revisadas` |
+
+## 4. Secretos
 
 - Solo en `.env` del servidor (`chmod 600`) o en variables del contenedor. `.env` está en `.gitignore` y `.dockerignore`. `.env.example` solo tiene marcadores.
 - Configuración con `SecretStr` (`GOOGLE_API_KEY`, `POSTGRES_PASSWORD`, `SAL_HASH_IP`).
 - La contraseña del primer admin se pide con `getpass` (`scripts/crear_admin.py`): nunca por argumento ni en `.env`.
 
-## 4. Privacidad (Ley 1581 de 2012)
+## 5. Privacidad (Ley 1581 de 2012)
 
 Página «🔒 Privacidad» con la política, aviso de que en producción las opiniones se envían a Google Gemini (y de que en el nivel gratuito Google puede usarlas), exportación de datos y eliminación de cuenta con anonimización de opiniones (`usuario_id = null`).
 
-## 5. Riesgos residuales conocidos
+## 6. Riesgos residuales conocidos
 
 - **Modelo pequeño en desarrollo:** `qwen2.5:3b` clasifica mal la ironía y el mixto. No es un riesgo de seguridad, pero sí de calidad; la revisión humana de v3 lo mitiga.
 - **Heurística de inyección:** solo registra; un atacante puede evitarla. La defensa real es estructural (delimitadores neutralizados, salida estructurada y nada de herramientas).

@@ -54,7 +54,30 @@ def render() -> None:
                        file_name="opiniones_filtradas.json", mime="application/json")
     d2.download_button("⬇️ Descargar CSV", csv_con_bom(res.registros), file_name="opiniones_filtradas.csv",
                        mime="text/csv")
+    _denunciar(res.registros)
     aviso_cifras()
+
+
+def _denunciar(registros) -> None:  # type: ignore[no-untyped-def]
+    """v3: un usuario con sesión puede denunciar una opinión (spam, ofensiva o mal clasificada)."""
+    c = recursos.contenedor()
+    actor = sesion.actor_actual()
+    if not c.modo_sql or actor is None or not registros:
+        return
+    from paddock.dominio.enums import MotivoDenuncia
+
+    with st.expander("🚩 Denunciar una opinión"):
+        por_id = {o.id: o for o in registros}
+        oid = st.selectbox("Opinión", list(por_id), format_func=lambda i: por_id[i].opinion_original[:90])
+        motivo = st.radio("Motivo", [m.value for m in MotivoDenuncia], horizontal=True,
+                          format_func=lambda m: {"spam": "Spam", "ofensiva": "Ofensiva",
+                                                 "mal_clasificada": "Mal clasificada"}[m])
+        if st.button("Enviar denuncia"):
+            try:
+                c.moderacion.denunciar(actor, oid, motivo)
+                st.success("Gracias. Un moderador la revisará.")
+            except ErrorPaddock as e:
+                st.error(str(e))
 
 
 render()

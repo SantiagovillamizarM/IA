@@ -12,7 +12,7 @@ Es la adaptación del taller *«Percepción de futbolistas mediante un chatbot»
 | --- | --- | --- |
 | **v1** | Núcleo del taller: arquitectura hexagonal, catálogo multidisciplina, Gemini u Ollama, `opiniones.json` | ✅ entregable del curso |
 | **v2** | Usuarios y roles, seguridad (OWASP), SQLite/PostgreSQL con Alembic, análisis por aspectos, dashboard, comparador, administración, Docker y CI | ✅ |
-| v3 | Moderación, calidad del modelo, lotes, resúmenes, mapa, PDF y API REST | pendiente |
+| **v3** | Moderación con revisión humana, calidad del modelo, lotes con worker, resúmenes de comunidad, mapa, informes PDF y API REST | ✅ (la matriz de confusión necesita ≥ 30 revisiones humanas: ver §15) |
 
 ---
 
@@ -227,7 +227,13 @@ src\paddock\aplicacion\consultar_opiniones.py          29      3    90%
 src\paddock\dominio\entidades.py                      187      3    98%
 src\paddock\dominio\reglas.py                         206     15    93%
 TOTAL                                                1375    179    87%
-(extracto; la interfaz se excluye de la cobertura y se prueba con AppTest)
+(extracto de v1; la interfaz se excluye de la cobertura y se prueba con AppTest)
+
+# v3 (2026-11-10)
+195 passed in 158.33s
+TOTAL                                                  3141    271    91%
+# dominio + aplicacion + adaptadores/persistencia (umbral de la CI: 80 %)
+TOTAL                                                  2006    126    94%
 ```
 
 Pruebas contra modelos reales (escriben en `evidencias/`):
@@ -334,3 +340,41 @@ El análisis por aspectos solo es útil con Gemini; el modelo pequeño omite los
 ### CI
 
 `.github/workflows/ci.yml`: ruff, mypy (dominio y aplicación), pytest con cobertura (umbral del 80 % en dominio, aplicación y persistencia), `pip-audit` y construcción y arranque de la imagen Docker. Ningún test llama a un LLM real. Resultado local: cobertura del 91 % en esas capas y `pip-audit` sin vulnerabilidades conocidas.
+
+## 15. v3 · Plataforma
+
+Requiere `STORAGE_BACKEND=sql`. Documentación de despliegue: [DESPLIEGUE.md](DESPLIEGUE.md). Seguridad: [SEGURIDAD.md](SEGURIDAD.md#3-controles-añadidos-en-v3).
+
+| Función | Página / componente | Quién |
+| --- | --- | --- |
+| Moderación: cola priorizada (denunciadas → ironía → intensidad baja con sentimiento fuerte → mixtas), confirmar o corregir con nota, ocultar (nunca borrar), denuncias de los usuarios | 🛡️ Moderación, 🔎 Consultar («Denunciar») | moderador, admin |
+| Etiqueta del modelo o revisada en las consultas | 🔎 Consultar, API (`etiqueta=revisada`) | todos |
+| Calidad: exactitud, precisión, recall y F1 por categoría, matriz de confusión, latencia media y p95, errores por tipo, tokens y exportación del conjunto de evaluación | 🎯 Calidad, `scripts/evaluar.py` | admin |
+| Lotes: CSV (`evento_id,edicion_anio,opinion`, ≤ 500 filas, ≤ 1 MB) validado antes de encolar; el **worker** lo procesa con ids `uuid5`; progreso con `st.fragment(run_every=4 s)` y descargas | 📥 Lotes, `python -m paddock.worker.procesador_lotes` | moderador, admin |
+| Resúmenes de comunidad con LangChain (map-reduce en grupos de 30, mínimo 5 opiniones, caché hasta 10 nuevas, regenerar con límite) | 📝 ¿Qué opina la comunidad? | todos (generar exige sesión) |
+| Mapa mundial (color = índice, tamaño = n; ficha y enlace a sus opiniones al seleccionar un punto) | 🗺️ Mapa | todos |
+| Informes PDF con `fpdf2` y DejaVu Sans incluida (licencia en `adaptadores/informes/fuentes/`); barras vectoriales en el propio PDF porque `kaleido` no se instaló (binarios nativos poco fiables bajo Smart App Control) | 📄 Informes | todos |
+| API REST (FastAPI): `GET /api/salud`, `/api/catalogo`, `/api/opiniones` (filtros y paginación), `/api/estadisticas`, `POST /api/opiniones` con token | contenedor `api`, tokens en 👤 Mi cuenta | integraciones |
+
+### Ejecutar en local (venv)
+
+```powershell
+# STORAGE_BACKEND=sql en .env
+streamlit run src/paddock/interfaz/app.py
+.venv\Scripts\python -m paddock.worker.procesador_lotes            # worker de lotes (otra terminal)
+.venv\Scripts\uvicorn paddock.api.main:app --port 8000             # API (API_DOCS=true para /api/docs)
+```
+
+### Probado con el sistema real (2026-11-10)
+
+- **Resumen real** de Le Mans con `gemini-3.5-flash-lite` sobre 8 opiniones: separa elogios (la pelea por la victoria, el ambiente del camping) de críticas (precio de las entradas, colas del aparcamiento) y cita el número de opiniones. Incluido en el [informe PDF de ejemplo](evidencias/informe_ejemplo_lemans.pdf).
+- **Docker** con los 4 servicios: API (401 sin token, 201 con token), lote de 3 filas procesado por el contenedor `worker` (2 guardadas y 1 no pertinente) y respaldo y restauración de PostgreSQL.
+- Capturas: [mapa](evidencias/capturas/v3_mapa.png) · [moderación](evidencias/capturas/v3_moderacion.png).
+
+### Pendiente que depende de ti: 30 revisiones humanas
+
+La matriz de confusión y las métricas de «🎯 Calidad» solo tienen sentido con **etiquetas humanas reales**. No se generaron etiquetas inventadas (el enunciado lo prohíbe). Para completarlas:
+
+1. En modo SQL, crea tu cuenta de admin (`scripts/crear_admin.py`) e inicia sesión.
+2. En **🛡️ Moderación**, revisa al menos **30** opiniones: confirma o corrige el sentimiento según tu criterio.
+3. Abre **🎯 Calidad** y ejecuta `scripts/evaluar.py --proveedor ollama --version-prompt 2.0` (y con Gemini) para comparar modelos sobre tus etiquetas. Los informes quedan en `evidencias/metricas/`.

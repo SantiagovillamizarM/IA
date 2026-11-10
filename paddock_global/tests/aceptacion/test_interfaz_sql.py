@@ -144,3 +144,32 @@ def test_cerrar_sesion_limpia_estado(app_sql):
     ir(at, "cuenta")
     next(b for b in at.button if "Cerrar sesión" in b.label).click().run()
     assert "actor" not in at.session_state
+
+
+def test_paginas_v3_publicas_cargan(app_sql):
+    at, _ = app_sql
+    for pagina in ("mapa", "resumen", "informes"):
+        ir(at, pagina)
+    at.button[0].click().run()  # informes: generar PDF
+    assert not at.exception
+
+
+def test_admin_paginas_de_gestion_v3(app_sql):
+    at, _ = app_sql
+    login(at, "admin@ejemplo.com")
+    for pagina in ("moderacion", "lotes", "calidad"):
+        ir(at, pagina)
+        assert not any("Acceso denegado" in e.value for e in at.error), pagina
+    ir(at, "moderacion")
+    assert any("En la cola" in m.label for m in at.metric)
+
+
+def test_aficionado_no_tiene_gestion_v3(app_sql):
+    at, _ = app_sql
+    login(at, "ana@ejemplo.com")
+    for pagina in ("moderacion", "lotes", "calidad"):
+        try:
+            at.switch_page(f"paginas/{pagina}.py").run()
+        except Exception:  # noqa: BLE001 - no registrada para su rol
+            continue
+        assert any("Acceso denegado" in e.value for e in at.error) or not at.button
