@@ -1,4 +1,4 @@
-# Python 3.12.10 · Ollama 0.40.15 · 2026-11-10
+# Python 3.12.10 · Ollama 0.40.15 · Docker 29.8.0 · 2026-11-10
 alembic==1.20.1
 altair==6.3.0
 annotated-doc==0.0.5

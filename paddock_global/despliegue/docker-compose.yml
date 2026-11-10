@@ -1,0 +1,64 @@
+# Paddock Global · producción (Plesk + extensión Docker)
+# Uso, desde la raíz del proyecto:  docker compose -f despliegue/docker-compose.yml --env-file .env up -d --build
+# Todos los puertos se publican SOLO en 127.0.0.1: Plesk (nginx) hace de proxy inverso con SSL.
+# PostgreSQL y Ollama no publican ningún puerto.
+
+x-logs: &logs
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-entorno: &entorno
+  env_file: ../.env
+  environment:
+    STORAGE_BACKEND: sql
+    DATABASE_URL: postgresql://paddock:${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}@db:5432/paddock
+    OLLAMA_BASE_URL: http://ollama:11434
+    PROXY_CONFIABLE: ${PROXY_CONFIABLE:-172.16.0.0/12,127.0.0.1}
+    DOMINIO: ${DOMINIO:-paddock.midominio.com}
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: despliegue/Dockerfile
+    image: paddock-global:latest
+    <<: *entorno
+    command: ["app"]
+    ports:
+      - "127.0.0.1:${PUERTO_APP:-8501}:8501"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *logs
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: paddock
+      POSTGRES_USER: paddock
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+    volumes:
+      - pgdatos:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paddock -d paddock"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    logging: *logs
+
+  # Opcional: solo en servidores con ≥ 8 GB de RAM libres.  docker compose --profile ollama up -d
+  ollama:
+    image: ollama/ollama:0.40.15
+    profiles: ["ollama"]
+    volumes:
+      - ollamamodelos:/root/.ollama
+    restart: unless-stopped
+    logging: *logs
+
+volumes:
+  pgdatos:
+  ollamamodelos:

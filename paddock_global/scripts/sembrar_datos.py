@@ -92,6 +92,7 @@ def main() -> int:
     p.add_argument("--version-prompt", choices=["1.0", "2.0"], default=None)
     p.add_argument("--pausa", type=float, default=None, help="Segundos entre llamadas (Gemini gratis: 13)")
     p.add_argument("--reiniciar", action="store_true", help="Copia de seguridad y vacía opiniones.json")
+    p.add_argument("--modelo", default=None, help="Sustituye GEMINI_MODEL u OLLAMA_MODEL en esta ejecución")
     p.add_argument("--categoria", choices=["positivo", "negativo", "neutro", "mixto"], default=None,
                    help="Siembra solo las opiniones (y reservas) de esa categoría esperada")
     a = p.parse_args()
@@ -102,9 +103,14 @@ def main() -> int:
         cambios["LLM_PROVIDER"] = a.proveedor
     if a.version_prompt:
         cambios["VERSION_PROMPT"] = a.version_prompt
+    if a.modelo:
+        prov = a.proveedor or base.LLM_PROVIDER
+        cambios["GEMINI_MODEL" if prov == "gemini" else "OLLAMA_MODEL"] = a.modelo
     aj = base.model_copy(update=cambios)
     pausa = a.pausa if a.pausa is not None else (13.0 if aj.LLM_PROVIDER == "gemini" else aj.SEMILLA_PAUSA_S)
     c = crear_contenedor(aj)
+    # La siembra es un proceso de operador (sin usuario): en modo SQL no se exige sesión aquí.
+    c.emitir_opinion.exigir_sesion = False
 
     if a.reiniciar:
         if aj.STORAGE_BACKEND != "json":
@@ -170,6 +176,7 @@ def main() -> int:
     cumple = n >= 12 and n_ev >= 4 and all(cats.get(s, 0) > 0 for s in ("positivo", "negativo", "neutro", "mixto"))
     aciertos = sum(1 for f in filas if f[5] == "✅")
     sufijo = f"_{a.categoria}" if a.categoria else ""
+    sufijo += "_sql" if aj.STORAGE_BACKEND == "sql" else ""
     salida = EVIDENCIAS / f"siembra_{aj.LLM_PROVIDER}_{aj.VERSION_PROMPT}{sufijo}.md"
     lineas = [
         f"# Siembra de datos · {c.clasificador.modelo} · prompt {aj.VERSION_PROMPT}",

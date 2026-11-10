@@ -6,6 +6,7 @@ directorio desde el que se arranca Streamlit.
 
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -13,7 +14,8 @@ from typing import Literal
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-RAIZ: Path = Path(__file__).resolve().parents[2]
+# PADDOCK_RAIZ permite fijar la raíz cuando el paquete no se ejecuta desde src/ (p. ej. en Docker).
+RAIZ: Path = Path(os.environ.get("PADDOCK_RAIZ") or Path(__file__).resolve().parents[2])
 DATOS: Path = RAIZ / "datos"
 EVIDENCIAS: Path = RAIZ / "evidencias"
 
@@ -31,7 +33,7 @@ class Ajustes(BaseSettings):
     GEMINI_MODEL: str = "gemini-2.5-flash"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "qwen2.5:3b"
-    VERSION_PROMPT: Literal["1.0", "2.0"] = "1.0"
+    VERSION_PROMPT: Literal["1.0", "2.0"] = "2.0"
 
     # --- persistencia
     STORAGE_BACKEND: Literal["json", "sql"] = "json"

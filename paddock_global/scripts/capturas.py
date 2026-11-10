@@ -67,8 +67,17 @@ class Cdp:
         return False
 
 
+async def _clic(cdp: Cdp, selector_js: str) -> None:
+    rect = await cdp.evaluar(f"(() => {{const r = ({selector_js}).getBoundingClientRect();"
+                             " return [r.x + r.width / 2, r.y + r.height / 2];}})()")
+    for tipo in ("mousePressed", "mouseReleased"):
+        await cdp("Input.dispatchMouseEvent", type=tipo, x=rect[0], y=rect[1], button="left", clickCount=1)
+    await asyncio.sleep(0.4)
+
+
 async def capturar(url: str, salida: Path, esperar: list[str], escribir: list[str], ancho: int, alto: int,
-                   pausa: float, puerto: int = 9333) -> None:
+                   pausa: float, puerto: int = 9333, login: str | None = None, ir: list[str] | None = None) -> None:
+    ir = ir or []
     perfil = tempfile.mkdtemp(prefix="paddock_cdp_")
     proc = subprocess.Popen([_navegador(), "--headless=new", f"--remote-debugging-port={puerto}",
                              f"--user-data-dir={perfil}", "--disable-gpu", "--hide-scrollbars",
@@ -92,6 +101,20 @@ async def capturar(url: str, salida: Path, esperar: list[str], escribir: list[st
             cdp = Cdp(ws)
             await cdp("Page.enable")
             await cdp("Page.navigate", url=url)
+            if login:
+                email, clave = login.split(":", 1)
+                for _ in range(60):
+                    if await cdp.evaluar("!!document.querySelector('input[aria-label=\"Correo\"]')"):
+                        break
+                    await asyncio.sleep(0.5)
+                for etiqueta, valor in (("Correo", email), ("Contraseña", clave)):
+                    await cdp.evaluar(f"document.querySelector('input[aria-label=\"{etiqueta}\"]').focus()")
+                    await cdp("Input.insertText", text=valor)
+                await cdp.evaluar("[...document.querySelectorAll('[data-testid=\"stFormSubmitButton\"] button')][0].click()")
+                await cdp.esperar_texto("Cerrar sesión")
+            for destino in ir:
+                await cdp.evaluar(f"document.querySelector('a[href$=\"/{destino}\"]').click()")
+                await asyncio.sleep(3)
             for t in esperar:
                 if not await cdp.esperar_texto(t):
                     print(f"Aviso: no apareció «{t}»")
@@ -143,8 +166,11 @@ def main() -> int:
     p.add_argument("--ancho", type=int, default=1440)
     p.add_argument("--alto", type=int, default=1000)
     p.add_argument("--pausa", type=float, default=2.0)
+    p.add_argument("--login", default=None, help="correo:contraseña (en la página /cuenta)")
+    p.add_argument("--ir", action="append", default=[], help="url_path de la página a la que navegar tras el login")
     a = p.parse_args()
-    asyncio.run(capturar(a.url, a.salida, a.esperar or ["Paddock Global"], a.escribir, a.ancho, a.alto, a.pausa))
+    asyncio.run(capturar(a.url, a.salida, a.esperar or ["Paddock Global"], a.escribir, a.ancho, a.alto, a.pausa,
+                         login=a.login, ir=a.ir))
     return 0
 
 

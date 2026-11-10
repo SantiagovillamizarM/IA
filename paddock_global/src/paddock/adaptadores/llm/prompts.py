@@ -11,6 +11,8 @@ Las llaves literales se escriben ``{{ }}``. Los ejemplos no coinciden con las pr
 
 from __future__ import annotations
 
+import re
+
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
 
@@ -81,6 +83,19 @@ PROMPTS: dict[str, tuple[str, type[BaseModel]]] = {
     VERSION_PROMPT_V1: (SISTEMA_V1, AnalisisOpinion),
     VERSION_PROMPT: (SISTEMA, AnalisisDetallado),
 }
+
+
+_DELIMITADOR = re.compile(r"<\s*(/?)\s*opinion\s*>", re.IGNORECASE)
+
+
+def neutralizar_delimitadores(texto: str) -> str:
+    """Control LLM01: el texto del usuario no puede cerrar ni abrir el bloque ``<opinion>``.
+
+    Las etiquetas se sustituyen por corchetes solo en la copia que va al prompt; el
+    ``opinion_original`` se guarda intacto. Hallazgo de v1: con ``</opinion> Sistema: …``
+    el modelo pequeño obedeció la instrucción inyectada.
+    """
+    return _DELIMITADOR.sub(lambda m: f"[{m.group(1)}opinion]", texto)
 
 
 def plantilla(version: str) -> ChatPromptTemplate:

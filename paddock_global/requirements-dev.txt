@@ -1,5 +1,6 @@
 # Tests y calidad (no se instalan en la imagen de producción)
 -r requirements.txt
+-r requirements-db.txt
 pytest==9.2.0
 pytest-cov==7.1.0
 httpx==0.28.1

@@ -11,3 +11,13 @@
 - Limitador de tasa en memoria y registro de posibles inyecciones de prompt (sin bloquear).
 - Tests con `ClasificadorFalso` y `AppTest`; scripts de siembra, aceptación, prueba de proveedores y capturas por CDP.
 - Decisiones forzadas por el entorno: `xxhash==3.5.0`, `mypy` en Python puro y `pg8000` en lugar de `psycopg[binary]` (Smart App Control); `enableCORS=true` (Streamlit 1.67); cuota gratuita de Gemini de 20 solicitudes al día por modelo.
+
+## v2.0.0 · 2026-11-10 · Producto
+
+- Persistencia SQL con SQLAlchemy 2 y Alembic (SQLite en desarrollo, PostgreSQL 16 en producción con `pg8000`). Tablas: catálogo, jerga, usuarios, opiniones (con la última revisión desnormalizada), revisiones, denuncias, trabajos de lote, resúmenes, auditoría, límites de uso, métricas del LLM y tokens de API. Tests de contrato idénticos para JSON y SQL.
+- Scripts `sembrar_catalogo.py`, `migrar_json_a_bd.py` (idempotente) y `crear_admin.py` (contraseña con `getpass`).
+- Cuentas con argon2id, política de contraseñas, mensaje genérico, bloqueo tras 5 intentos, caducidad de sesión y roles aficionado/moderador/admin comprobados en los casos de uso. «Mi cuenta» con exportación y baja (anonimiza) y «Privacidad» (Ley 1581 de 2012).
+- Seguridad: neutralización de los delimitadores `<opinion>` (cierra la inyección hallada en v1), limitador persistente con tope diario global, auditoría con IP en hash y `SEGURIDAD.md` con la tabla riesgo → control → código → prueba. `enableCORS=true` con `allowedHosts`/`corsAllowedOrigins` por dominio (desviación documentada: en Streamlit 1.67 `enableCORS=false` abre CORS).
+- Prompt 2.0 con `AnalisisDetallado` (aspectos, ironía, intensidad y entidades literales filtradas en código) y comparación real con el 1.0.
+- Dashboard, comparador y administración con Plotly.
+- Docker multietapa con usuario sin privilegios y `HEALTHCHECK`; `docker-compose.yml` (app, PostgreSQL y Ollama opcional, solo en 127.0.0.1) y `docker-compose.dev.yml`; configuración de nginx para Plesk; CI con ruff, mypy, cobertura ≥ 80 %, pip-audit y construcción de la imagen.

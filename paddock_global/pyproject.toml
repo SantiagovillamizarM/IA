@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "paddock-global"
-version = "1.0.0"
+version = "2.0.0"
 description = "Paddock Global: análisis de sentimientos LangChain de opiniones del mundo de las carreras"
 requires-python = ">=3.12"
 
@@ -37,6 +37,9 @@ ignore = ["S101", "S311", "B008", "S603", "S607"]
 "tests/*" = ["S105", "S106", "S108"]
 "src/paddock/adaptadores/llm/prompts.py" = ["E501"]
 "scripts/sembrar_datos.py" = ["E501"]
+"scripts/capturas.py" = ["E501"]
+"src/paddock/interfaz/*" = ["E501"]
+"tests/*.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"

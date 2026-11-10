@@ -24,6 +24,10 @@ class HasherContrasenas(Protocol):
 
     def necesita_rehash(self, hash_guardado: str) -> bool: ...
 
+    def verificar_ficticio(self, contrasena: str) -> None:
+        """Gasta el mismo tiempo que una verificación real (correo inexistente)."""
+        ...
+
 
 class Limitador(Protocol):
     def verificar_y_registrar(self, sujeto: str, *, ventana_min: int = 5, maximo: int | None = None,

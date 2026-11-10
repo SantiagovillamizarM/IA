@@ -75,8 +75,21 @@ def estado_llm() -> None:
     st.caption(f"Prompt v{aj.VERSION_PROMPT} · temperatura {aj.LLM_TEMPERATURE:g} (solo lectura, desde .env)")
 
 
+def _usuario() -> None:
+    from paddock.interfaz.componentes import sesion
+
+    if not recursos.contenedor().modo_sql:
+        return
+    actor = sesion.actor_actual()
+    if actor is None:
+        st.caption("👤 Sin sesión · entra en «Mi cuenta» para opinar")
+    else:
+        st.caption(f"👤 {actor.nombre} · {actor.rol}")
+
+
 def render() -> Seleccion:
     with st.sidebar:
+        _usuario()
         st.markdown("### 🏁 Carrera")
         sel = selector_evento(recursos.catalogo())
         ficha_evento(sel)

@@ -16,8 +16,7 @@ enableXsrfProtection = true
 # «Access-Control-Allow-Origin: *» y acepta WebSockets de cualquier origen (ver SEGURIDAD.md).
 enableCORS = true
 maxUploadSize = 2
-# allowedHosts y corsAllowedOrigins se fijan con STREAMLIT_SERVER_ALLOWED_HOSTS y
-# STREAMLIT_SERVER_CORS_ALLOWED_ORIGINS en docker-compose.yml (dominio real del .env).
+# allowedHosts y corsAllowedOrigins los añade despliegue/entrypoint.sh a partir de DOMINIO (.env).
 
 [browser]
 gatherUsageStats = false

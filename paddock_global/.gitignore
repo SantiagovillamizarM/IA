@@ -9,6 +9,8 @@ __pycache__/
 htmlcov/
 datos/*.db
 datos/*.db-journal
+datos/*.db-shm
+datos/*.db-wal
 datos/opiniones.backup-*.json
 evidencias/capturas/*.tmp
 referencia_zip/

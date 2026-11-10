@@ -1,0 +1,14 @@
+# Desarrollo local con recarga automática (monta el código fuente).
+# Uso:  docker compose -f despliegue/docker-compose.yml -f despliegue/docker-compose.dev.yml --env-file .env up --build
+# Para usar el Ollama del equipo anfitrión: OLLAMA_BASE_URL=http://host.docker.internal:11434 en .env
+
+services:
+  app:
+    volumes:
+      - ../src:/app/src:ro
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL_DEV:-http://host.docker.internal:11434}
+      STREAMLIT_SERVER_RUN_ON_SAVE: "true"
+      STREAMLIT_SERVER_FILE_WATCHER_TYPE: poll
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

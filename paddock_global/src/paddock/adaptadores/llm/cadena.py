@@ -197,7 +197,7 @@ class ClasificadorLangChain:
             "jerga": self._jerga_para(disciplina_id),
             "carrera": carrera,
             "edicion": str(edicion) if edicion else "sin especificar",
-            "opinion": texto,
+            "opinion": prompts.neutralizar_delimitadores(texto),
         }
         reintento_invalida = reintento_red = False
         intentos = 0

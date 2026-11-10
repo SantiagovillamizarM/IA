@@ -46,3 +46,25 @@ Capturas reales (app con `qwen2.5:3b`):
 - «Vi la carrera completa desde la curva de Arnage con dos amigos» (esperado neutro) → no pertinente: no se guardó.
 - Mixtas de qwen: Le Mans, Daytona 500 y Bathurst → positivo; Finlandia, MotoGP Italia y Monza → negativo; Mónaco y Dakar → neutro (con una razón que menciona el elogio y la crítica).
 - Análisis completo en la [reflexión](reflexion.md).
+
+## v2 · prompt 2.0 · 2026-11-10
+
+### Aceptación de clasificación
+
+| Proveedor y modelo | Coinciden | Notas | Evidencia |
+| --- | --- | --- | --- |
+| Ollama · `qwen2.5:3b` | **9/17** | La inyección con delimitador ya **no** funciona (neutralización de `<opinion>`); los campos de v2 quedan vacíos | [registro_pruebas_ollama_2.0.md](registro_pruebas_ollama_2.0.md) |
+| Gemini · `gemini-3.5-flash-lite` | **17/17** | Aspectos coherentes; `ironia=true` en los dos casos irónicos | [registro_pruebas_gemini_2.0.md](registro_pruebas_gemini_2.0.md) |
+
+Comparación caso por caso: [comparacion_prompt_1.0_vs_2.0.md](comparacion_prompt_1.0_vs_2.0.md).
+
+### Base de datos y Docker
+
+- `alembic upgrade head` / `downgrade base` / `upgrade head` y `alembic check` sin diferencias (SQLite).
+- Migración JSON → BD: 34 importadas; repetida: 0 importadas, 34 omitidas.
+- Siembra en SQL con Gemini y el prompt 2.0: 21/24 coinciden; 3 `ProveedorNoDisponibleError` (tiempos de espera de Gemini) **no** se guardaron ([siembra_gemini_2.0_sql.md](siembra_gemini_2.0_sql.md)).
+- Docker Desktop 29.8: imagen construida; PostgreSQL 16 con `pg8000`; migraciones al arrancar; app sana en `127.0.0.1`; PostgreSQL sin puerto publicado; un usuario que persiste tras `docker compose restart`; clasificación desde el contenedor con el Ollama del equipo guardada en PostgreSQL. **Fallo encontrado y corregido:** con el paquete instalado en el venv de la imagen, la raíz del proyecto se calculaba desde `site-packages` y no encontraba `datos/` (ahora `PADDOCK_RAIZ=/app` y `PYTHONPATH`).
+
+### Interfaz (AppTest, modo SQL)
+
+Anónimo consulta pero no emite; inicio de sesión y opinión guardada con `usuario_id` y aspectos; mensaje genérico y bloqueo tras 5 intentos; un aficionado no ve «Administración» y la página la deniega igualmente; el admin ve sus 4 pestañas; el dashboard y el comparador cargan; cerrar sesión limpia el estado. Capturas: [dashboard](capturas/v2_dashboard.png), [administración tras un inicio de sesión real](capturas/v2_administracion.png).

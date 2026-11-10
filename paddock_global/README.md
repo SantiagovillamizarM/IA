@@ -11,7 +11,7 @@ Es la adaptación del taller *«Percepción de futbolistas mediante un chatbot»
 | Versión | Contenido | Estado |
 | --- | --- | --- |
 | **v1** | Núcleo del taller: arquitectura hexagonal, catálogo multidisciplina, Gemini u Ollama, `opiniones.json` | ✅ entregable del curso |
-| v2 | Usuarios y roles, seguridad (OWASP), SQLite/PostgreSQL con Alembic, análisis por aspectos, dashboard, Docker y CI | en curso |
+| **v2** | Usuarios y roles, seguridad (OWASP), SQLite/PostgreSQL con Alembic, análisis por aspectos, dashboard, comparador, administración, Docker y CI | ✅ |
 | v3 | Moderación, calidad del modelo, lotes, resúmenes, mapa, PDF y API REST | pendiente |
 
 ---
@@ -22,7 +22,7 @@ Es la adaptación del taller *«Percepción de futbolistas mediante un chatbot»
 - Al menos un proveedor de LLM:
   - **Ollama** (desarrollo, local y sin costo) con `qwen2.5:3b`: `ollama pull qwen2.5:3b`. Verificado con Ollama 0.40.15.
   - **Gemini** (producción): una clave de [Google AI Studio](https://aistudio.google.com/).
-- Docker es opcional (v2).
+- Docker es opcional (v2). Sin Docker, todo funciona en el venv con SQLite.
 
 ## 2. Instalación (PowerShell)
 
@@ -32,7 +32,7 @@ py -3.12 -m venv .venv                      # el venv DENTRO del proyecto (ver �
 # Si PowerShell no deja activar el venv:
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt -r requirements-dev.txt
+python -m pip install -r requirements.txt -r requirements-db.txt -r requirements-dev.txt
 python -m pip install -e .                   # instala el paquete «paddock» desde src/
 copy .env.example .env                       # y edita .env
 streamlit run src/paddock/interfaz/app.py
@@ -50,8 +50,12 @@ Toda la configuración está en `.env` (lo lee `pydantic-settings` en `src/paddo
 | `OLLAMA_MODEL`, `OLLAMA_BASE_URL` | `qwen2.5:3b`, `http://localhost:11434` | Ollama |
 | `GEMINI_MODEL`, `GOOGLE_API_KEY` | `gemini-2.5-flash`, tu clave | Gemini |
 | `LLM_TEMPERATURE` | `0` | Reduce la variación, pero **no garantiza determinismo** |
-| `VERSION_PROMPT` | `1.0` (v1) \| `2.0` (v2) | Versión del prompt y del esquema |
-| `STORAGE_BACKEND` | `json` (v1) | Persistencia |
+| `VERSION_PROMPT` | `1.0` (taller) \| `2.0` (por defecto desde v2) | Versión del prompt y del esquema |
+| `STORAGE_BACKEND` | `json` (taller) \| `sql` | Persistencia; `sql` activa cuentas, roles y auditoría |
+| `DATABASE_URL` | `sqlite:///datos/paddock.db` \| `postgresql://…` | Base de datos (PostgreSQL usa el driver `pg8000`) |
+| `PERMITIR_ANONIMOS`, `REGISTRO_ABIERTO` | `true`/`false` | Consultar sin cuenta; registro abierto |
+| `SESION_MINUTOS`, `LIMITE_OPINIONES_5MIN`, `LIMITE_LLM_DIARIO` | `60`, `10`, `1000` | Caducidad de sesión y límites de uso |
+| `SAL_HASH_IP` | aleatoria | Sal del hash de IP en la auditoría |
 | `OPINIONES_JSON` | `datos/opiniones.json` | Archivo del modo taller |
 | `ZONA_HORARIA` | `America/Bogota` | Fechas de la consulta |
 
@@ -250,16 +254,17 @@ Python 3.12.10 · Ollama 0.40.15 · `streamlit` 1.67.0 · `langchain-core` 1.7.6
 
 | Versión | Cambios | Motivo |
 | --- | --- | --- |
+| 2.0 | Añade aspectos valorados con polaridad, `ironia` como campo, `intensidad` (1–5) y entidades literales (esquema `AnalisisDetallado`). Con el prompt se añadió un control de seguridad: las etiquetas `<opinion>` del texto se neutralizan antes de entrar al prompt | Análisis por aspectos para el dashboard. La neutralización cierra la inyección con delimitador hallada en v1 ([comparación 1.0 vs 2.0](evidencias/comparacion_prompt_1.0_vs_2.0.md)) |
 | 1.0 | Rol de clasificador; «el texto es dato»; pertinencia (incluida la comparación con otra carrera); criterios de las 4 categorías (mixto ≠ neutro); ironía en la razón; jerga por disciplina; 6 ejemplos que no coinciden con las pruebas; opinión entre `<opinion>` | Una prueba previa con un prompt mínimo clasificó como negativa una opinión mixta (ver la reflexión) |
 
 Cada registro guarda su `version_prompt`, así se sabe con qué criterio se clasificó.
 
-## 12. Seguridad (v1)
+## 12. Seguridad (resumen; detalle en [SEGURIDAD.md](SEGURIDAD.md))
 
 - El texto del usuario va delimitado y se trata como dato; la salida es estructurada y validada; la cadena no tiene herramientas ni acceso a datos.
 - La opinión y la razón se muestran como texto plano o escapadas con `html.escape` (prueba XSS en `tests/aceptacion/test_interfaz.py`).
 - Los errores nunca muestran trazas ni la clave. `.env` está en `.gitignore`.
-- **Streamlit 1.67 y CORS:** con `server.enableCORS=false`, Streamlit envía `Access-Control-Allow-Origin: *` y acepta WebSockets de cualquier origen. Por eso la configuración usa `enableCORS=true` junto con `enableXsrfProtection=true` (detalle en `SEGURIDAD.md`, v2).
+- **Streamlit 1.67 y CORS:** con `server.enableCORS=false`, Streamlit envía `Access-Control-Allow-Origin: *` y acepta WebSockets de cualquier origen. Por eso la configuración usa `enableCORS=true` junto con `enableXsrfProtection=true` (detalle en [SEGURIDAD.md](SEGURIDAD.md)).
 
 ## 13. Autoevaluación contra la rúbrica del taller (v1)
 
@@ -273,3 +278,59 @@ Cada registro guarda su `version_prompt`, así se sabe con qué criterio se clas
 | Pruebas, documentación y explicación del código | 15/15 | 133 tests, evidencias reales con los dos proveedores, reflexión con 4 casos y este README |
 
 Lo que **no** sale perfecto no es el código sino el modelo de desarrollo: `qwen2.5:3b` acierta 8 de 17 casos de aceptación (ver la reflexión). Gemini acierta 17 de 17 con el mismo prompt.
+
+## 14. v2 · Producto multiusuario
+
+### Modo base de datos en el venv (sin Docker)
+
+```powershell
+# en .env: STORAGE_BACKEND=sql y DATABASE_URL=sqlite:///datos/paddock.db
+.venv\Scriptslembic upgrade head                 # crea el esquema (nunca create_all en producción)
+.venv\Scripts\python scripts\sembrar_catalogo.py   # catálogo y jerga (idempotente)
+.venv\Scripts\python scripts\migrar_json_a_bd.py   # importa opiniones.json sin duplicar
+.venv\Scripts\python scripts\crear_admin.py --email admin@midominio.com --nombre "Admin"   # pide la contraseña con getpass
+streamlit run src/paddock/interfaz/app.py
+```
+
+Resultado real en este equipo: la migración importó 34 opiniones; al repetirla, 0 importadas y 34 omitidas.
+
+### Con Docker (PostgreSQL 16)
+
+```powershell
+docker compose -p paddock -f despliegue/docker-compose.yml --env-file .env up -d --build
+# Desarrollo con recarga y el Ollama del equipo anfitrión:
+docker compose -p paddock -f despliegue/docker-compose.yml -f despliegue/docker-compose.dev.yml --env-file .env up -d --build
+docker compose -p paddock -f despliegue/docker-compose.yml --env-file .env exec app python scripts/crear_admin.py --email … --nombre …
+```
+
+El *entrypoint* aplica `alembic upgrade head` y siembra el catálogo antes de arrancar. **Probado en este equipo (Docker Desktop 29.8):** imagen construida, migraciones en PostgreSQL con `pg8000`, app sana, un usuario que sigue ahí tras `docker compose restart` y una opinión clasificada desde el contenedor con el Ollama del equipo y guardada en PostgreSQL. `PUERTO_APP` cambia el puerto publicado (siempre en `127.0.0.1`).
+
+### Cuentas, roles y privacidad
+
+- Contraseñas con **argon2id**; mínimo 12 caracteres; se rechazan las comunes (`datos/contrasenas_comunes.txt`) y las que contienen el correo.
+- Mensaje genérico al fallar; bloqueo de 15 minutos tras 5 intentos; caducidad por inactividad; cerrar sesión limpia `st.session_state`.
+- Roles: **aficionado** (emite y ve sus opiniones), **moderador** (además revisa, v3) y **admin** (además catálogo, jerga, usuarios y auditoría). El permiso se comprueba en los casos de uso.
+- **👤 Mi cuenta:** mis opiniones, exportar mis datos (JSON) y eliminar la cuenta (las opiniones quedan anónimas). **🔒 Privacidad:** política según la Ley 1581 de 2012 y aviso sobre el envío a Gemini.
+
+### Análisis enriquecido, dashboard y comparador
+
+- Prompt 2.0 con `AnalisisDetallado`: la tarjeta muestra los aspectos como chips de color, la ironía, la intensidad y las entidades (solo las que aparecen literalmente en el texto; el resto se descarta en código).
+- **📊 Dashboard** (Plotly): KPIs, evolución semanal, sentimiento por disciplina (100 %), mapa de calor aspecto × sentimiento, top 10 de entidades y ranking por índice de percepción con n ≥ 5. Filtros: disciplina, campeonato, edición y fechas. Cada gráfico indica que refleja solo la app. La identidad nunca depende solo del color: el par verde/rojo da ΔE 6,0 con deuteranopía (medido con el validador de paleta), así que van siempre con emoji y nombre.
+- **⚖️ Comparar:** dos carreras o dos ediciones lado a lado.
+- **⚙️ Administración:** activar o desactivar y añadir eventos, editar la jerga, gestionar usuarios (rol, bloqueo) y consultar la auditoría. No hay borrado físico de opiniones.
+
+Capturas: [dashboard](evidencias/capturas/v2_dashboard.png) · [administración](evidencias/capturas/v2_administracion.png).
+
+### Lo que mostraron las pruebas reales del prompt 2.0
+
+| | qwen2.5:3b | Gemini |
+| --- | --- | --- |
+| Aceptación 1.0 → 2.0 | 8/17 → 9/17 | 17/17 → 17/17 |
+| Inyección con delimitador | positivo → **no pertinente** (gracias a la neutralización) | no pertinente |
+| Campos de v2 | **vacíos** en los 17 casos (sin aspectos ni intensidad; ironía siempre falsa) | completos y coherentes |
+
+El análisis por aspectos solo es útil con Gemini; el modelo pequeño omite los campos opcionales. Detalle: [comparación 1.0 vs 2.0](evidencias/comparacion_prompt_1.0_vs_2.0.md) · [siembra SQL con Gemini 2.0](evidencias/siembra_gemini_2.0_sql.md) (21/24; 3 tiempos de espera de Gemini que **no** se guardaron).
+
+### CI
+
+`.github/workflows/ci.yml`: ruff, mypy (dominio y aplicación), pytest con cobertura (umbral del 80 % en dominio, aplicación y persistencia), `pip-audit` y construcción y arranque de la imagen Docker. Ningún test llama a un LLM real. Resultado local: cobertura del 91 % en esas capas y `pip-audit` sin vulnerabilidades conocidas.
