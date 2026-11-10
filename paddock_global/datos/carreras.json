@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "carreras": [
+    {"id": "c001", "nombre": "24 Horas de Le Mans", "pais": "Francia", "circuito": "Circuit de la Sarthe"},
+    {"id": "c002", "nombre": "24 Horas de Nürburgring", "pais": "Alemania", "circuito": "Nürburgring Nordschleife"},
+    {"id": "c003", "nombre": "24 Horas de Daytona", "pais": "Estados Unidos", "circuito": "Daytona International Speedway"},
+    {"id": "c004", "nombre": "24 Horas de Spa", "pais": "Bélgica", "circuito": "Circuit de Spa-Francorchamps"},
+    {"id": "c005", "nombre": "12 Horas de Sebring", "pais": "Estados Unidos", "circuito": "Sebring International Raceway"},
+    {"id": "c006", "nombre": "12 Horas de Bathurst", "pais": "Australia", "circuito": "Mount Panorama"},
+    {"id": "c007", "nombre": "24 Horas de Dubái", "pais": "Emiratos Árabes Unidos", "circuito": "Dubai Autodrome"},
+    {"id": "c008", "nombre": "24 Horas de Barcelona", "pais": "España", "circuito": "Circuit de Barcelona-Catalunya"},
+    {"id": "c009", "nombre": "Petit Le Mans", "pais": "Estados Unidos", "circuito": "Michelin Raceway Road Atlanta"},
+    {"id": "c010", "nombre": "6 Horas de Fuji", "pais": "Japón", "circuito": "Fuji Speedway"},
+    {"id": "c011", "nombre": "8 Horas de Baréin", "pais": "Baréin", "circuito": "Bahrain International Circuit"},
+    {"id": "c012", "nombre": "6 Horas de Imola", "pais": "Italia", "circuito": "Autodromo Enzo e Dino Ferrari"},
+    {"id": "c013", "nombre": "6 Horas de São Paulo", "pais": "Brasil", "circuito": "Interlagos"},
+    {"id": "c014", "nombre": "6 Horas de Watkins Glen", "pais": "Estados Unidos", "circuito": "Watkins Glen International"},
+    {"id": "c015", "nombre": "Lone Star Le Mans", "pais": "Estados Unidos", "circuito": "Circuit of the Americas"},
+    {"id": "c016", "nombre": "24 Horas de Zolder", "pais": "Bélgica", "circuito": "Circuit Zolder"},
+    {"id": "c017", "nombre": "9 Horas de Kyalami", "pais": "Sudáfrica", "circuito": "Kyalami Grand Prix Circuit"},
+    {"id": "c018", "nombre": "6 Horas de Bogotá", "pais": "Colombia", "circuito": "Autódromo de Tocancipá"},
+    {"id": "c019", "nombre": "Targa Florio (histórica)", "pais": "Italia", "circuito": "Circuito delle Madonie"},
+    {"id": "c020", "nombre": "Carrera Panamericana (histórica)", "pais": "México", "circuito": "Carreteras de México"}
+  ]
+}
