@@ -1,0 +1,30 @@
+# Producción (contenedor detrás del proxy de Plesk)
+[theme]
+base = "dark"
+primaryColor = "#e10600"
+backgroundColor = "#15171c"
+secondaryBackgroundColor = "#22252d"
+textColor = "#eef0f3"
+font = "sans serif"
+
+[server]
+headless = true
+address = "0.0.0.0"
+port = 8501
+enableXsrfProtection = true
+# enableCORS = true a propósito: en Streamlit 1.67, enableCORS=false envía
+# «Access-Control-Allow-Origin: *» y acepta WebSockets de cualquier origen (ver SEGURIDAD.md).
+enableCORS = true
+maxUploadSize = 2
+# allowedHosts y corsAllowedOrigins se fijan con STREAMLIT_SERVER_ALLOWED_HOSTS y
+# STREAMLIT_SERVER_CORS_ALLOWED_ORIGINS en docker-compose.yml (dominio real del .env).
+
+[browser]
+gatherUsageStats = false
+
+[client]
+showErrorDetails = false
+toolbarMode = "minimal"
+
+[logger]
+level = "info"

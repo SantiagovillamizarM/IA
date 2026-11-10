@@ -1,8 +1,24 @@
+# Paddock Global · dependencias de producción (versiones verificadas en Windows 11 y Linux/Docker)
+# Sin openai ni langchain-openai: los únicos proveedores LLM son Gemini y Ollama.
+
+# Interfaz
 streamlit==1.67.0
+
+# LLM
 langchain-core==1.7.6
+langchain-google-genai==4.4.3
+google-genai==3.0.0
 langchain-ollama==1.1.0
+ollama==0.6.3
+
+# Validación y configuración
 pydantic==2.14.3
+pydantic-settings==2.16.2
 python-dotenv==1.2.4
+
+# Datos
 pandas==3.1.1
-xxhash==3.5.0        # fijado por Smart App Control: 4.x está bloqueado en este equipo
-pytest
+tzdata==2026.6
+
+# Fijado por Smart App Control: xxhash 4.x está bloqueado en el equipo de desarrollo
+xxhash==3.5.0

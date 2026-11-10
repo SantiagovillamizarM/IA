@@ -3,3 +3,13 @@
 __pycache__/
 *.tmp
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+datos/*.db
+datos/*.db-journal
+datos/opiniones.backup-*.json
+evidencias/capturas/*.tmp
+referencia_zip/
+*.egg-info/

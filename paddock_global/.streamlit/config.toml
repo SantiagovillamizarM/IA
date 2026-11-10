@@ -1,2 +1,22 @@
+# Desarrollo local. La configuración de producción está en despliegue/.streamlit/config.toml
+[theme]
+base = "dark"
+primaryColor = "#e10600"
+backgroundColor = "#15171c"
+secondaryBackgroundColor = "#22252d"
+textColor = "#eef0f3"
+font = "sans serif"
+
 [server]
+enableXsrfProtection = true
+# enableCORS = true a propósito: en Streamlit 1.67, enableCORS=false envía
+# «Access-Control-Allow-Origin: *» y acepta WebSockets de cualquier origen (ver SEGURIDAD.md).
+enableCORS = true
 maxUploadSize = 2
+
+[browser]
+gatherUsageStats = false
+
+[client]
+showErrorDetails = false
+toolbarMode = "minimal"

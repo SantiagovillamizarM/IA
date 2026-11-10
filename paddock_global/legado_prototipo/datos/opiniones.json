@@ -1,0 +1,395 @@
+{
+  "version": 1,
+  "opiniones": [
+    {
+      "id": "992b28ea-6f46-477e-9fcb-c68b26fdf4b1",
+      "fecha_utc": "2026-11-10T12:02:00+00:00",
+      "carrera_id": "c001",
+      "carrera_nombre": "24 Horas de Le Mans",
+      "opinion_original": "Ver amanecer en la Sarthe con los coches todavía a fondo me puso la piel de gallina",
+      "sentimiento": "positivo",
+      "razon": "El aficionado expresa una valoración favorable al ver el amanecer en la Sarthe con los coches todavía a fondo, lo que lo puso la piel de gallina.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "c89a1dc9-3bdf-44cf-8735-3910fc1c4df2",
+      "fecha_utc": "2026-11-10T12:02:10+00:00",
+      "carrera_id": "c001",
+      "carrera_nombre": "24 Horas de Le Mans",
+      "opinion_original": "La entrada era carísima y desde la tribuna casi no se veía la pista",
+      "sentimiento": "negativo",
+      "razon": "El aficionado critica la calidad de la transmisión desde la tribuna debido a la elevada entrada, lo que indica una percepción negativa de la experiencia en general.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [
+        {
+          "aspecto": "transmision",
+          "sentimiento": "negativo"
+        }
+      ],
+      "alerta_revision": null
+    },
+    {
+      "id": "5083aff5-c073-4394-840e-67740332bcbd",
+      "fecha_utc": "2026-11-10T12:02:26+00:00",
+      "carrera_id": "c001",
+      "carrera_nombre": "24 Horas de Le Mans",
+      "opinion_original": "La pelea por la victoria fue apasionante, pero los cortes de la transmisión fueron constantes",
+      "sentimiento": "mixto",
+      "razon": "El aficionado valora positivamente la pelea por la victoria, pero critica constantemente los cortes de la transmisión.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "en",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "1fe082df-57b7-4d67-8956-94fa09871018",
+      "fecha_utc": "2026-11-10T12:02:34+00:00",
+      "carrera_id": "c002",
+      "carrera_nombre": "24 Horas de Nürburgring",
+      "opinion_original": "Los aficionados acampando en el bosque crean un ambiente único en el mundo",
+      "sentimiento": "neutro",
+      "razon": "El aficionado describe el ambiente creado por los aficionados acampando, pero no valora positivamente ni negativamente la carrera en sí.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "d2a8874c-6053-4bb5-9bc8-9457d7bc9d45",
+      "fecha_utc": "2026-11-10T12:02:43+00:00",
+      "carrera_id": "c002",
+      "carrera_nombre": "24 Horas de Nürburgring",
+      "opinion_original": "La organización fue un desastre: horas de bandera roja sin información para el público",
+      "sentimiento": "negativo",
+      "razon": "La opinión expresa críticas específicas sobre la organización, señalando que hubo bandera roja sin información para el público, lo que indica un desastre en la organización.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "en",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "d8c65a44-8000-444d-b5cc-26aa1e1b18a8",
+      "fecha_utc": "2026-11-10T12:02:51+00:00",
+      "carrera_id": "c002",
+      "carrera_nombre": "24 Horas de Nürburgring",
+      "opinion_original": "La vuelta combina el trazado de Gran Premio con el Nordschleife",
+      "sentimiento": "neutro",
+      "razon": "El aficionado solo describe la combinación de trazados sin valorar ni elogiar ni criticar la carrera en sí.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "e78255d1-308e-4301-81bc-9172f3b194c3",
+      "fecha_utc": "2026-11-10T12:03:01+00:00",
+      "carrera_id": "c002",
+      "carrera_nombre": "24 Horas de Nürburgring",
+      "opinion_original": "El Nordschleife es una maravilla, aunque la niebla dejó la carrera detenida casi toda la noche",
+      "sentimiento": "mixto",
+      "razon": "El aficionado valora positivamente el Nordschleife pero critica negativamente la niebla que detuvo la carrera casi toda la noche.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [
+        {
+          "aspecto": "clima",
+          "sentimiento": "negativo"
+        },
+        {
+          "aspecto": "organizacion",
+          "sentimiento": "negativo"
+        }
+      ],
+      "alerta_revision": null
+    },
+    {
+      "id": "fa34fd94-d0bf-4a2b-af76-e8c49e8f1066",
+      "fecha_utc": "2026-11-10T12:03:09+00:00",
+      "carrera_id": "c003",
+      "carrera_nombre": "24 Horas de Daytona",
+      "opinion_original": "Los peraltes de noche con los prototipos a toda velocidad son un espectáculo increíble",
+      "sentimiento": "positivo",
+      "razon": "El aficionado valora positivamente la velocidad y espectacularidad de los prototipos en los peraltes de noche.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "en",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "d5dc4bee-1ee4-4c52-9ecb-64b0dbe29e88",
+      "fecha_utc": "2026-11-10T12:03:17+00:00",
+      "carrera_id": "c003",
+      "carrera_nombre": "24 Horas de Daytona",
+      "opinion_original": "Me aburrí muchísimo, fue una procesión con demasiadas neutralizaciones",
+      "sentimiento": "negativo",
+      "razon": "El aficionado describe aburrimiento y muchas neutralizaciones, lo que indica una opinión negativa sobre la carrera.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "en",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "4be2e01b-bd66-402a-ac1f-dc0819b57686",
+      "fecha_utc": "2026-11-10T12:03:40+00:00",
+      "carrera_id": "c003",
+      "carrera_nombre": "24 Horas de Daytona",
+      "opinion_original": "Me encantó la variedad de categorías, pero el tráfico en pista causó accidentes absurdos",
+      "sentimiento": "mixto",
+      "razon": "El aficionado valoró positivamente la variedad de categorías pero criticó el tráfico en pista, que causó accidentes absurdos.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "en",
+      "aspectos": [
+        {
+          "aspecto": "competencia",
+          "sentimiento": "negativo"
+        },
+        {
+          "aspecto": "trazado",
+          "sentimiento": "negativo"
+        }
+      ],
+      "alerta_revision": null
+    },
+    {
+      "id": "ed0f6d9d-cdfc-4968-a8b3-d67eff1d3821",
+      "fecha_utc": "2026-11-10T12:03:46+00:00",
+      "carrera_id": "c004",
+      "carrera_nombre": "24 Horas de Spa",
+      "opinion_original": "Ver a los GT3 subir Eau Rouge bajo la lluvia es lo más emocionante que he visto",
+      "sentimiento": "positivo",
+      "razon": "El aficionado valora emocionantemente ver a los GT3 subir Eau Rouge bajo la lluvia.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "03a69488-51d0-4108-b776-262e92d70a20",
+      "fecha_utc": "2026-11-10T12:03:58+00:00",
+      "carrera_id": "c004",
+      "carrera_nombre": "24 Horas de Spa",
+      "opinion_original": "El BoP arruinó la competencia, ganó el que mejor negoció con los comisarios",
+      "sentimiento": "negativo",
+      "razon": "El aficionado critica el BoP y la gestión de los comisarios, lo que arruinó la competencia.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [
+        {
+          "aspecto": "competencia",
+          "sentimiento": "negativo"
+        },
+        {
+          "aspecto": "reglamento",
+          "sentimiento": "negativo"
+        }
+      ],
+      "alerta_revision": null
+    },
+    {
+      "id": "004fb3b0-1ca2-4d7a-853f-759b1cf6a2bc",
+      "fecha_utc": "2026-11-10T12:04:06+00:00",
+      "carrera_id": "c004",
+      "carrera_nombre": "24 Horas de Spa",
+      "opinion_original": "La carrera reúne a más de cincuenta coches de la categoría GT3",
+      "sentimiento": "neutro",
+      "razon": "La opinión solo menciona la cantidad de coches participantes sin valorar la carrera en sí.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "b72abccc-3db8-4a7a-a89c-da77927ec874",
+      "fecha_utc": "2026-11-10T12:04:16+00:00",
+      "carrera_id": "c004",
+      "carrera_nombre": "24 Horas de Spa",
+      "opinion_original": "El circuito es precioso, lástima que los atascos para salir del parking duraron horas",
+      "sentimiento": "negativo",
+      "razon": "El aficionado critica los atascos para salir del parking, lo que le resta positividad a la carrera.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [
+        {
+          "aspecto": "logistica",
+          "sentimiento": "negativo"
+        },
+        {
+          "aspecto": "organizacion",
+          "sentimiento": "negativo"
+        }
+      ],
+      "alerta_revision": null
+    },
+    {
+      "id": "97fa7d70-7b7b-40a5-a4d7-aabac898dd04",
+      "fecha_utc": "2026-11-10T12:04:24+00:00",
+      "carrera_id": "c001",
+      "carrera_nombre": "24 Horas de Le Mans",
+      "opinion_original": "The atmosphere at Le Mans during the night is something every fan should experience",
+      "sentimiento": "neutro",
+      "razon": "El aficionado describe la atmósfera durante la noche en Le Mans sin valorarla positivamente o negativamente.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "en",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "5dd59ff6-1732-49ce-9003-d9f46274dc8a",
+      "fecha_utc": "2026-11-10T12:04:32+00:00",
+      "carrera_id": "c003",
+      "carrera_nombre": "24 Horas de Daytona",
+      "opinion_original": "La course était interminable, trop de drapeaux jaunes et aucun suspense",
+      "sentimiento": "negativo",
+      "razon": "El aficionado describe la carrera como interminable y sin suspense debido a demasiadas banderas amarillas, lo que indica una crítica desfavorable.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "fr",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "2dd31d1f-7564-4d54-84c1-0299e02a9237",
+      "fecha_utc": "2026-11-10T12:04:47+00:00",
+      "carrera_id": "c004",
+      "carrera_nombre": "24 Horas de Spa",
+      "opinion_original": "A subida da Eau Rouge é sensacional, mas a chuva atrapalhou demais a corrida",
+      "sentimiento": "negativo",
+      "razon": "El aficionado valoró positivamente la subida de Eau Rouge pero criticó la lluvia que afectó significativamente a la carrera.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "0f85795c-3296-443f-9b08-3687f524a2a6",
+      "fecha_utc": "2026-11-10T12:17:40+00:00",
+      "carrera_id": "c002",
+      "carrera_nombre": "24 Horas de Nürburgring",
+      "opinion_original": "Nurburgring es hermoso pero tambien hermosamente peligroso, me encantaria manejar alla",
+      "sentimiento": "neutro",
+      "razon": "El aficionado describe el circuito como hermoso pero peligroso sin hacer valoraciones explícitas sobre la carrera en sí.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "4700fe09-f313-4ada-8833-faf60a4cc663",
+      "fecha_utc": "2026-11-10T12:19:44+00:00",
+      "carrera_id": "c002",
+      "carrera_nombre": "24 Horas de Nürburgring",
+      "opinion_original": "The track is really dangerous, it can kill anyone, i dont like it because of that, if i try it, i will probabli be death, i dont like it",
+      "sentimiento": "negativo",
+      "razon": "El aficionado critica la seguridad del trazado y expresa su deseo de no participar en la carrera debido a la peligrosidad.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "en",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "997e5b79-5b15-5c00-97b9-1dd46f602293",
+      "fecha_utc": "2026-11-10T12:23:40+00:00",
+      "carrera_id": "c001",
+      "carrera_nombre": "24 Horas de Le Mans",
+      "opinion_original": "La salida al atardecer en Le Mans fue preciosa, el público no paraba de aplaudir",
+      "sentimiento": "positivo",
+      "razon": "El aficionado valora positivamente la salida al atardecer y el aplauso del público, lo que sugiere una experiencia emocionante y alegre.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "5d833bc6-8c9a-5e51-9413-e069a230c674",
+      "fecha_utc": "2026-11-10T12:23:53+00:00",
+      "carrera_id": "c003",
+      "carrera_nombre": "24 Horas de Daytona",
+      "opinion_original": "La transmisión por streaming se cortó cinco veces durante la noche",
+      "sentimiento": "negativo",
+      "razon": "El aficionado menciona que la transmisión por streaming se cortó varias veces, lo que indica una mala experiencia para los espectadores.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "en",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "a48dc545-5b68-5c3a-bb70-f9115d6c7304",
+      "fecha_utc": "2026-11-10T12:24:06+00:00",
+      "carrera_id": "c003",
+      "carrera_nombre": "24 Horas de Daytona",
+      "opinion_original": "Los peraltes son impresionantes, aunque el tráfico entre clases fue peligroso",
+      "sentimiento": "negativo",
+      "razon": "El aficionado critica el tráfico entre clases y la organización, lo que indica un sentimiento negativo sobre la carrera.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [
+        {
+          "aspecto": "trazado",
+          "sentimiento": "negativo"
+        },
+        {
+          "aspecto": "competencia",
+          "sentimiento": "negativo"
+        },
+        {
+          "aspecto": "organizacion",
+          "sentimiento": "negativo"
+        }
+      ],
+      "alerta_revision": null
+    },
+    {
+      "id": "2d270c4c-c92b-548b-acec-72d7b2294901",
+      "fecha_utc": "2026-11-10T12:24:26+00:00",
+      "carrera_id": "c002",
+      "carrera_nombre": "24 Horas de Nürburgring",
+      "opinion_original": "Le brouillard a gâché la course, mais l'ambiance au camping était géniale",
+      "sentimiento": "neutro",
+      "razon": "El aficionado critica la lluvia que afectó la carrera pero describe la atmósfera del camping como genial, lo que resulta en una posición neutra.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "fr",
+      "aspectos": [],
+      "alerta_revision": null
+    },
+    {
+      "id": "1c0ee004-6c16-574f-a7dd-c8d4fbd76bbe",
+      "fecha_utc": "2026-11-10T12:24:32+00:00",
+      "carrera_id": "c004",
+      "carrera_nombre": "24 Horas de Spa",
+      "opinion_original": "Eau Rouge bajo la lluvia es lo más emocionante del automovilismo",
+      "sentimiento": "positivo",
+      "razon": "El aficionado valora emocionantemente la carrera bajo la lluvia, lo que es un aspecto positivo de la carrera en Spa.",
+      "modelo": "ollama/qwen2.5:3b",
+      "version_prompt": "2.1",
+      "idioma": "es",
+      "aspectos": [],
+      "alerta_revision": null
+    }
+  ]
+}

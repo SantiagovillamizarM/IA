@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "jerga": {
+    "formula": ["DRS", "undercut", "overcut", "pole", "parada en boxes", "safety car", "VSC", "bandera roja", "neumáticos blandos/duros", "degradación", "sanción de 5 s", "límites de pista", "sprint", "porpoising"],
+    "resistencia": ["stint", "FCY", "slow zone", "Code 60", "BoP", "Hypercar", "LMP2", "GT3", "GTD", "relevo de pilotos", "Mulsanne", "Infierno Verde", "peraltes", "Eau Rouge"],
+    "rally": ["tramo", "especial", "shakedown", "notas del copiloto", "power stage", "recce", "pinchazo", "parque cerrado", "superespecial"],
+    "rally_raid": ["etapa", "navegación", "roadbook", "dunas", "bivac", "waypoint"],
+    "ovalos": ["banking", "draft/rebufo", "the Big One", "caution", "stage", "green-white-checkered"],
+    "motociclismo": ["caída", "long lap penalty", "holeshot", "aerodinámica", "ride height device", "chicane"],
+    "historicas": []
+  }
+}

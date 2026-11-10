@@ -1,175 +1,275 @@
-# 🏁 Paddock Global — Análisis de sentimientos LangChain
+# 🏁 Paddock Global
 
-Chatbot de Streamlit que registra opiniones de aficionados sobre **carreras de resistencia** (24 Horas de Le Mans, Nürburgring, Daytona y otras), clasifica su sentimiento con **LangChain + un modelo local en Ollama** y guarda los registros en JSON para consultarlos después de reiniciar.
+**Análisis de sentimientos LangChain · opiniones del mundo de las carreras**
 
-Es una adaptación del taller «Percepción de futbolistas mediante un chatbot»: se cambia el tema (futbolistas → carreras) y el proveedor (OpenAI → Ollama local, sin API key).
+Paddock Global recoge opiniones de aficionados sobre carreras de todo el automovilismo y el motociclismo (Fórmula 1, resistencia, rally, rally raid, IndyCar, NASCAR, Fórmula E, MotoGP e históricas). Un modelo de lenguaje clasifica cada opinión como **😀 positiva**, **😞 negativa**, **😐 neutra** o **🤔 mixta** y da una justificación breve. Las opiniones se pueden consultar, filtrar y descargar.
 
-> El catálogo es una **selección didáctica**, no un calendario oficial ni un ranking. La clasificación describe lo que expresó cada aficionado, no la calidad objetiva de la carrera, y las cifras solo representan las opiniones registradas en esta app.
+> **Avisos.** El catálogo es una **selección didáctica**: no es un calendario oficial ni un ranking, y no incluye ganadores, récords ni fechas. La clasificación describe **lo que expresó el aficionado**, no la calidad objetiva de la carrera. Las cifras reflejan **solo las opiniones registradas en esta app**, no la opinión mundial.
 
-## Requisitos
+Es la adaptación del taller *«Percepción de futbolistas mediante un chatbot»* (Tribuna Global) a la actividad **«Análisis de sentimientos LangChain»**: «jugador» pasa a ser «evento/edición».
 
-- Windows 10/11, Python 3.12
-- [Ollama](https://ollama.com) con el modelo `qwen2.5:3b` (1,9 GB; cabe en GPUs de 3 GB y funciona también en CPU)
-- Opcional, para «Comparar modelos»: `llama3.2:3b` (2,0 GB)
+| Versión | Contenido | Estado |
+| --- | --- | --- |
+| **v1** | Núcleo del taller: arquitectura hexagonal, catálogo multidisciplina, Gemini u Ollama, `opiniones.json` | ✅ entregable del curso |
+| v2 | Usuarios y roles, seguridad (OWASP), SQLite/PostgreSQL con Alembic, análisis por aspectos, dashboard, Docker y CI | en curso |
+| v3 | Moderación, calidad del modelo, lotes, resúmenes, mapa, PDF y API REST | pendiente |
 
-## Instalación y ejecución
+---
+
+## 1. Requisitos
+
+- Windows 11, **Python 3.12** (verificado con 3.12.10), PowerShell 5.1.
+- Al menos un proveedor de LLM:
+  - **Ollama** (desarrollo, local y sin costo) con `qwen2.5:3b`: `ollama pull qwen2.5:3b`. Verificado con Ollama 0.40.15.
+  - **Gemini** (producción): una clave de [Google AI Studio](https://aistudio.google.com/).
+- Docker es opcional (v2).
+
+## 2. Instalación (PowerShell)
 
 ```powershell
 cd C:\Users\Santiago\Desktop\IA\paddock_global
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1   # si falla por ExecutionPolicy: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-pip install -r requirements.txt
-copy .env.example .env
-ollama pull qwen2.5:3b
-ollama pull llama3.2:3b        # opcional: segundo modelo para comparar
-streamlit run app.py
+py -3.12 -m venv .venv                      # el venv DENTRO del proyecto (ver «Smart App Control»)
+# Si PowerShell no deja activar el venv:
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt -r requirements-dev.txt
+python -m pip install -e .                   # instala el paquete «paddock» desde src/
+copy .env.example .env                       # y edita .env
+streamlit run src/paddock/interfaz/app.py
 ```
 
-La app abre en http://localhost:8501. La **primera** clasificación tarda alrededor de **1 minuto** porque Ollama carga el modelo en memoria; las siguientes, unos 5 segundos.
+La app abre en `http://localhost:8501`. Comprobación sin navegador: `curl http://localhost:8501/_stcore/health` → `ok`.
 
-Otros comandos:
+## 3. Configuración y cambio de proveedor
 
-```powershell
-python -m pytest -q                 # pruebas sin modelo (48)
-python pruebas_aceptacion.py        # casos de clasificación contra Ollama → evidencias/
-python prueba_interfaz.py           # pruebas de la interfaz (respalda y restaura opiniones.json)
-python sembrar_datos.py             # añade opiniones ficticias usando el clasificador real
-python sembrar_datos.py --reiniciar # hace copia de seguridad y empieza vacío
-python comparar_modelos.py          # evalúa los dos modelos en 5 idiomas (~5 min) → evidencias/
-```
+Toda la configuración está en `.env` (lo lee `pydantic-settings` en `src/paddock/config.py`). `.env.example` solo tiene marcadores.
 
-## Configuración (`.env`)
+| Variable | Valores | Uso |
+| --- | --- | --- |
+| `LLM_PROVIDER` | `ollama` \| `gemini` | Proveedor activo |
+| `OLLAMA_MODEL`, `OLLAMA_BASE_URL` | `qwen2.5:3b`, `http://localhost:11434` | Ollama |
+| `GEMINI_MODEL`, `GOOGLE_API_KEY` | `gemini-2.5-flash`, tu clave | Gemini |
+| `LLM_TEMPERATURE` | `0` | Reduce la variación, pero **no garantiza determinismo** |
+| `VERSION_PROMPT` | `1.0` (v1) \| `2.0` (v2) | Versión del prompt y del esquema |
+| `STORAGE_BACKEND` | `json` (v1) | Persistencia |
+| `OPINIONES_JSON` | `datos/opiniones.json` | Archivo del modo taller |
+| `ZONA_HORARIA` | `America/Bogota` | Fechas de la consulta |
 
-```dotenv
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=qwen2.5:3b
-OLLAMA_TEMPERATURE=0
-OLLAMA_MODEL_COMPARACION=llama3.2:3b
-```
+Para cambiar de proveedor basta con editar `LLM_PROVIDER` y reiniciar Streamlit: el dominio y la interfaz no cambian (el proveedor está detrás del puerto `ClasificadorSentimiento`). El modelo debe soportar **salida estructurada** (JSON Schema). No hay respaldo automático entre proveedores (`LLM_FALLBACK=none`): cada registro guarda qué modelo lo clasificó.
 
-Para cambiar de modelo (por ejemplo `llama3.2:3b` o `qwen2.5:7b`), descárgalo con `ollama pull` y cambia `OLLAMA_MODEL`. El modelo debe soportar salida estructurada (JSON schema). La temperatura 0 reduce la variación, pero **no garantiza** resultados idénticos ni exactos.
+La barra lateral muestra el estado del proveedor (🟢/🔴) y el modelo en uso, en solo lectura. La primera llamada a Ollama tarda unos 60–70 s porque carga el modelo; las siguientes, 4–6 s. La app lo indica con un spinner, no con un error.
 
-## Versiones utilizadas
+**Gemini.** El nombre del modelo se verificó contra la API de Google el 2026-11-10 (`gemini-2.5-flash` está disponible). La clave vive solo en `.env`. El nivel gratuito tiene límites por minuto y por día: el error 429 se muestra como «cuota excedida» y no se guarda nada. Google puede usar los datos del nivel gratuito para mejorar sus productos.
 
-| Componente | Versión |
-|---|---|
-| Python | 3.12.10 |
-| Ollama | 0.40.15 |
-| Modelo principal | qwen2.5:3b |
-| Modelo de comparación | llama3.2:3b |
-| altair (gráficas, viene con Streamlit) | incluida |
-| streamlit | 1.67.0 |
-| langchain-core | 1.7.6 |
-| langchain-ollama | 1.1.0 |
-| ollama (cliente) | 0.6.3 |
-| pydantic | 2.14.3 |
-| python-dotenv | 1.2.4 |
-| pandas | 3.1.1 |
-| xxhash | 3.5.0 (fijada, ver «Problemas conocidos») |
-| pytest | 9.2.0 |
+> **Cuota real medida (2026-11-10):** con esta clave, el nivel gratuito de `gemini-2.5-flash` permite **20 solicitudes al día por modelo** (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`, valor 20) y unas 5 por minuto. Se agotó con la siembra y la primera prueba, así que la aceptación con Gemini se ejecutó con `gemini-3.5-flash` (misma clave, cuota propia). En producción con el nivel gratuito, ajusta `LIMITE_LLM_DIARIO` a la cuota real (p. ej. 20), o usa un plan de pago; si no, los usuarios verán «cuota excedida» mucho antes de llegar al tope de la app.
 
-La lista completa está en `versiones_instaladas.txt`.
+## 4. Uso
 
-## Arquitectura
+1. Elige **disciplina → campeonato → carrera** en la barra lateral y, si quieres, el año de la edición.
+2. En **🗣️ Emitir opinión**, escribe tu opinión (5 a 1000 caracteres).
+3. Verás la tarjeta con el sentimiento y la razón, y «✅ Opinión guardada» **solo** si se escribió en disco.
+4. En **🔎 Consultar opiniones**, filtra por disciplina, campeonato, carrera, edición, sentimiento y texto. Los recuentos usan los mismos registros que la tabla. Descarga en JSON o en CSV (UTF-8 con BOM, para que Excel muestre bien las tildes). Consultar **nunca** llama al modelo.
 
-| Archivo | Responsabilidad |
-|---|---|
-| `config.py` | Rutas absolutas (desde `Path(__file__)`) y lectura de `.env`. |
-| `analisis.py` | `ChatPromptTemplate` (system + human), `ChatOllama`, esquema `AnalisisOpinion`, `validar_texto`, `validar_coherencia`, `analizar_opinion`, `verificar_ollama`. |
-| `almacenamiento.py` | `cargar_carreras`, `cargar_opiniones`, `crear_registro`, `guardar_opinion` (escritura atómica e idempotente), `consultar_opiniones`, `contar_por_sentimiento`. |
-| `app.py` | Barra lateral (carrera, sección, estado de Ollama) y enrutado a las secciones. |
-| `ui/` | Una sección por archivo: `emitir.py`, `consultar.py`, `estadisticas.py`, `carga.py`, `comparar.py`; `comun.py` con colores, caché y gráficas. |
-| `estadisticas.py` | Conteos para gráficas, ranking y aspectos (sin modelo). |
-| `carga_masiva.py` | Lectura y validación de CSV, y procesamiento idempotente por lotes. |
-| `evaluacion.py` | Métricas por idioma y categoría, kappa de Cohen y comparación de modelos. |
-| `comparar_modelos.py` | Script que evalúa los dos modelos y escribe el informe. |
-| `datos/carreras.json` | Catálogo de 20 carreras con `id` estable. |
-| `datos/opiniones.json` | Registros persistentes. |
-| `datos/conjunto_evaluacion.json` | 26 opiniones ficticias etiquetadas a mano en 5 idiomas (solo para evaluar). |
-| `datos/ejemplo_carga.csv` | CSV de ejemplo para la carga masiva. |
+Un texto que no habla de la carrera elegida **no se guarda** («No se guardó: el texto no es una opinión sobre…»). Un fallo de red, cuota, validación o escritura **nunca** se registra como «neutro».
+
+## 5. Arquitectura hexagonal
 
 ```mermaid
 flowchart LR
-    U[Usuario escribe opinión] --> V{validar_texto<br/>5–1000 caracteres}
-    V -- no --> E1[Aviso: entrada no válida<br/>sin LLM, sin guardar]
-    V -- sí --> L[prompt | ChatOllama<br/>.with_structured_output]
-    L -- error de conexión/modelo --> E2[Error visible, sin registro]
-    L --> P{¿parsea y es coherente?}
-    P -- no, tras 1 reintento --> E3[Error visible, sin registro]
-    P -- no pertinente --> N[Aviso: no se guarda]
-    P -- pertinente --> R[crear_registro<br/>UUID, fecha, carrera, metadatos]
-    R --> G[guardar_opinion<br/>tmp + os.replace]
-    G -- ok --> OK[✅ Opinión guardada]
-    G -- error --> E4[❌ No se guardó]
+    subgraph Entrada
+        UI["interfaz/ (Streamlit)"]
+        SC["scripts/"]
+    end
+    subgraph Aplicacion["aplicacion/ (casos de uso)"]
+        EO[EmitirOpinion]
+        CO[ConsultarOpiniones]
+    end
+    subgraph Dominio["dominio/ (puro)"]
+        R["reglas.py: validar_texto,<br/>validar_coherencia, crear_registro,<br/>contar_por_sentimiento"]
+        E["entidades, enums, errores,<br/>AnalisisOpinion (Pydantic)"]
+    end
+    subgraph Puertos["puertos/"]
+        PC[ClasificadorSentimiento]
+        PR[RepositorioOpiniones]
+        PK[RepositorioCatalogo]
+    end
+    subgraph Adaptadores["adaptadores/"]
+        G["llm/gemini.py<br/>ChatGoogleGenerativeAI"]
+        O["llm/ollama.py<br/>ChatOllama"]
+        F["llm/falso.py<br/>(tests)"]
+        J["persistencia/json_repo.py<br/>opiniones.json"]
+    end
+    UI --> EO & CO
+    SC --> EO
+    EO --> R
+    EO --> PC & PR & PK
+    CO --> PR
+    PC -.implementa.- G & O & F
+    PR -.implementa.- J
 ```
 
-**Puntos clave del diseño**
+Las dependencias apuntan hacia dentro: `interfaz` → `aplicacion` → `dominio`. El dominio no importa Streamlit, LangChain, SQLAlchemy ni FastAPI. `contenedor.py` arma los adaptadores según `.env`.
 
-- El modelo solo produce `es_pertinente`, `sentimiento` y `razon`. El programa genera el `id` (UUID4), `fecha_utc`, la carrera y los metadatos (`modelo`, `version_prompt`).
-- La carrera se **captura en el momento del envío** (copia del diccionario): cambiar el selector después no altera registros anteriores.
-- El clasificador recibe **solo la opinión actual**, sin el historial del chat.
-- Un fallo de conexión, de parseo, de validación o de escritura **nunca** se registra como «neutro».
-- El `registro_id` se genera una vez por envío y `guardar_opinion` ignora un `id` repetido, así que los *reruns* de Streamlit no duplican registros.
-- Escritura atómica: archivo temporal en el mismo directorio, `fsync` y `os.replace`. Si `opiniones.json` está dañado, se muestra un error y **no se sobrescribe**.
-- Limitación: se supone **un único escritor local**. El reemplazo atómico evita archivos incompletos, pero no resuelve escrituras concurrentes; para varios usuarios habría que migrar a SQLite o PostgreSQL.
+**Flujo de una opinión**
 
-## Ampliaciones (además del taller)
+```mermaid
+flowchart LR
+    A[Texto del usuario] --> B{validar_texto<br/>5–1000, sin control}
+    B -- inválido --> X1[⚠️ aviso, sin modelo]
+    B --> C{limitador}
+    C --> D["ClasificadorSentimiento<br/>prompt | modelo.with_structured_output"]
+    D -- error --> X2[⚠️ mensaje por tipo, sin guardar]
+    D --> E{Pydantic +<br/>validar_coherencia}
+    E -- incoherente --> X3[1 reintento y luego error]
+    E --> F{¿pertinente?}
+    F -- no --> X4[«No se guardó»]
+    F -- sí --> G[crear_registro<br/>UUID, fecha UTC, evento, modelo]
+    G --> H["guardar (idempotente por id)<br/>escritura atómica"]
+    H -- ok --> I[✅ Opinión guardada]
+    H -- error --> X5[⚠️ sin confirmación]
+```
 
-| Ampliación | Dónde | Cómo funciona |
-|---|---|---|
-| 📊 **Gráfica por carrera** | «Estadísticas» | Barras apiladas por sentimiento (cantidad o %), con tooltip y vista de tabla. Solo usa registros de la app. Colores fijos por sentimiento, validados para daltonismo. |
-| 🏆 **Ranking de carreras** | «Estadísticas» | Índice de percepción = (positivas − negativas) ÷ total × 100, de −100 a +100. Las carreras con menos opiniones que el mínimo elegido van al final. |
-| 🔍 **Sentimiento por aspecto** | Análisis y «Estadísticas» | El modelo indica los aspectos que menciona la opinión (trazado, organización, clima, reglamento, ambiente, transmisión, competencia, logística) y cómo valora cada uno. |
-| ⚠️ **Alerta de revisión** | «Emitir» y «Consultar» | Si los aspectos contradicen la categoría global (por ejemplo, un aspecto positivo y otro negativo, pero la categoría no es mixto), la opinión se marca para revisión. **No** cambia la etiqueta. |
-| ✏️ **Corrección manual** | «Consultar» | Se guarda `sentimiento_corregido` + nota + fecha. `sentimiento` (lo que dijo el modelo) **nunca** se sobrescribe. Filtros, recuentos, gráficas y ranking usan la etiqueta vigente. Elegir de nuevo la etiqueta del modelo deshace la corrección. |
-| 🌍 **Multilingüe** | Análisis, «Consultar» y «Comparar» | Acepta opiniones en cualquier idioma; la razón siempre sale en español. Se guarda el `idioma` detectado y se puede filtrar por él. La evaluación por idioma está en «Comparar modelos». |
-| ⚖️ **Comparar dos modelos** | «Comparar modelos» + `comparar_modelos.py` | Exactitud global, por idioma y por categoría, detección de idioma, tiempo, acuerdo y kappa de Cohen sobre 26 casos. También permite comparar en vivo una opinión con los dos modelos (sin guardar). |
-| 📁 **Carga masiva CSV** | «Carga masiva» | Valida cada fila, muestra una vista previa y clasifica con barra de progreso. El id de cada registro se deriva del contenido del archivo y del número de fila (uuid5), así que volver a subir el mismo archivo no duplica nada. Si Ollama se cae, se detiene y conserva lo ya guardado. |
-
-**Compatibilidad:** los campos nuevos (`idioma`, `aspectos`, `alerta_revision`, `sentimiento_corregido`, `nota_correccion`, `fecha_correccion_utc`) son opcionales. Los registros antiguos siguen cargando y `version` sigue siendo 1.
-
-## Historial de sesión vs. persistencia
-
-- `st.session_state.historial`: lo que se ve en el chat. Vive en la memoria del navegador y del servidor, y se pierde al cerrar la pestaña o al pulsar «Nueva conversación».
-- `datos/opiniones.json`: los registros guardados. Sobreviven al reinicio; «Nueva conversación» no los toca.
-
-## Diferencias con `streamlit_chatbot2.py` (código base del curso)
-
-| Original | Paddock Global |
-|---|---|
-| `ChatOpenAI` + `OPENAI_API_KEY` | `ChatOllama` local, sin clave |
-| Selectores de modelo, temperatura y personalidad | Eliminados: el clasificador mantiene criterios estables |
-| `{historial}` dentro del prompt | Sin historial: cada opinión se analiza sola |
-| `cadena.stream(...)` y `chunk.content` | `cadena.invoke(...)` → objeto Pydantic (`analisis.sentimiento`) |
-| Historial como `HumanMessage`/`AIMessage` | Diccionarios con la carrera y el estado de cada opinión |
-| Sin persistencia | `opiniones.json` + sección de consultas |
-
-**Antiejemplo del zip:** `analisis_sentimientos_parte1.py` devuelve `{"sentimiento": "neutro", "razon": "Error en análisis"}` cuando falla `json.loads`. Eso convierte un error en un dato falso. Aquí un fallo siempre se reporta como error y no se guarda.
-
-## Problemas conocidos en Windows
-
-- **Smart App Control** (Windows 11) bloquea DLLs de algunos paquetes pip sin reputación: `ImportError: DLL load failed ... Una directiva de Control de aplicaciones bloqueó este archivo`. En este equipo bloqueó `xxhash 4.1.0` (dependencia de `langsmith` → `langchain-core`). Solución: fijar `xxhash==3.5.0`. **No desactives Smart App Control**: en Windows 11 no se puede volver a activar sin reinstalar el sistema. Crea el venv dentro del proyecto, no en `%TEMP%`.
-- **Primera llamada lenta** (~1 min): es la carga del modelo. `keep_alive="30m"` lo mantiene cargado entre opiniones.
-- Si `ollama` no se reconoce en la terminal, ábrela de nuevo o usa `%LOCALAPPDATA%\Programs\Ollama\ollama.exe`.
-
-## Pruebas y evidencias
+### Estructura
 
 ```text
-> python -m pytest -q
-................................................                         [100%]
-48 passed in 1.25s
+src/paddock/
+├── dominio/        entidades.py, enums.py, analisis.py (Pydantic), reglas.py, errores.py
+├── puertos/        clasificador.py, repositorios.py, servicios.py
+├── aplicacion/     emitir_opinion.py, consultar_opiniones.py, autorizacion.py
+├── adaptadores/
+│   ├── llm/        prompts.py, cadena.py, gemini.py, ollama.py, jerga.py, falso.py
+│   ├── persistencia/ json_repo.py, memoria.py
+│   └── seguridad/  limitador.py
+├── interfaz/       app.py, paginas/ (inicio, emitir, consultar), componentes/
+├── config.py       Ajustes (pydantic-settings)
+└── contenedor.py   inyección de dependencias
+datos/              catalogo.json, jerga.json, opiniones.json
+scripts/            sembrar_datos.py, pruebas_aceptacion.py, probar_proveedores.py, capturas.py
+tests/              unit/, integracion/, aceptacion/
+evidencias/         registro_pruebas_*.md, siembra_*.md, reflexion.md, capturas/
 ```
 
-- [evidencias/registro_pruebas.md](evidencias/registro_pruebas.md): todos los casos, con lo esperado, lo observado y las discrepancias explicadas. Clasificación: 9/11 (v1.0), 10/11 (v1.1) y 10/11 (v2.1). Interfaz: 15/15. Carga masiva idempotente.
-- [evidencias/comparacion_modelos_prompt_v2.1.md](evidencias/comparacion_modelos_prompt_v2.1.md): qwen2.5:3b 73,1 % frente a llama3.2:3b 76,9 % en 26 casos de 5 idiomas.
-- [evidencias/reflexion.md](evidencias/reflexion.md): análisis de los errores y ambigüedades.
-- `evidencias/capturas/`: capturas de persistencia tras reinicio y de la consulta filtrada.
+Las funciones que pide el taller existen con su responsabilidad separada: `cargar_catalogo` (equivale a `cargar_jugadores`), `cargar_opiniones`, `guardar_opinion`, `consultar_opiniones` (en `json_repo.py`), `crear_registro` (en `reglas.py`) y el análisis en `ClasificadorLangChain.clasificar` (en `cadena.py`).
 
-## Historial del prompt
+### Catálogo (`datos/catalogo.json`)
 
-| Versión | Cambio |
-|---|---|
-| 1.0 | Roles, criterios de las 4 categorías, pertinencia, ironía, jerga y ejemplos. |
-| 1.1 | Procedimiento de decisión paso a paso (elogios / críticas → categoría). Corrigió las descripciones neutras clasificadas como positivas; volvió al modelo más conservador con los elogios implícitos (ver reflexión). |
-| 2.0 | Multilingüe (mismos criterios en todos los idiomas, razón siempre en español), campos `idioma` y `aspectos` antes de la categoría, elogios implícitos explícitamente reconocidos y «un dato sobre la carrera es pertinente y neutro». `num_ctx` 2048 → 4096. |
-| 2.1 | La descripción de `es_pertinente` dice «trata sobre la carrera (valoración o dato)» en vez de «constituye una opinión». Sin efecto medible (ver reflexión, caso 5), pero es coherente con el prompt. **Versión actual.** |
+Jerarquía `Disciplina → Campeonato → Evento` con ids estables tipo *slug* (`ev-f1-monaco`): 7 disciplinas, 9 campeonatos y 32 eventos. La **edición** es un atributo de la opinión (`edicion_anio`, opcional, entre 1900 y el año actual), no una entidad precargada, para no inventar calendarios. Se valida la versión, que las listas no estén vacías, los campos obligatorios, que los ids sean únicos y que toda referencia exista. `lat`/`lon` son aproximadas y solo sirven para el mapa (v3); cuando la sede no es un punto, se usó la ciudad y se anotó en `nota_coord`.
+
+### Prompt y salida estructurada
+
+El prompt (`adaptadores/llm/prompts.py`) es un `ChatPromptTemplate` con mensaje de **sistema** (rol, reglas, pertinencia, criterios de las 4 categorías, ironía, jerga de la disciplina y ejemplos) y mensaje **humano** con la carrera, la edición y la opinión entre `<opinion>…</opinion>`. Solo se envía la jerga de la disciplina de la carrera elegida (`datos/jerga.json`).
+
+La cadena es `prompt | modelo.with_structured_output(AnalisisOpinion, method="json_schema", include_raw=True)`. Con `include_raw` se distingue un fallo de parseo de uno de conexión. El resultado se usa como objeto Pydantic (`analisis.sentimiento`), no como `response.content`. Después, `validar_coherencia` comprueba lo que el esquema no puede expresar: pertinente ⇔ con sentimiento.
+
+**Errores.** Las excepciones de cada proveedor se traducen a errores propios: `ProveedorNoDisponibleError`, `ModeloNoEncontradoError`, `CredencialInvalidaError`, `CuotaExcedidaError`, `ContenidoBloqueadoError` y `RespuestaInvalidaError`. Se usa la jerarquía `ModelError` de `langchain-core` 1.7 (que `langchain-google-genai` 4.4 ya emplea), `google.genai.errors`, `ollama.ResponseError.status_code` y `httpx`. `RespuestaInvalidaError` se reintenta **una** vez y `ProveedorNoDisponibleError` una vez tras 2 s; el resto no se reintenta. Los clientes van con `max_retries=0` para no duplicar llamadas. **Nunca** se devuelve un sentimiento por defecto.
+
+## 6. Diferencias con `streamlit_chatbot2.py` (código base del curso)
+
+| `streamlit_chatbot2.py` | Paddock Global |
+| --- | --- |
+| Selectores de personalidad, modelo y temperatura en la barra lateral | **Eliminados**: el clasificador necesita criterios estables. El modelo se configura en `.env` y se muestra en solo lectura |
+| `ChatOpenAI` | Puerto `ClasificadorSentimiento` con adaptadores `ChatGoogleGenerativeAI` y `ChatOllama`. **No** se usa OpenAI |
+| `{historial}` + `{mensaje}` en el prompt | El historial **no** entra al clasificador: cada opinión se analiza sola |
+| Historial con `HumanMessage`/`AIMessage` | Historial con diccionarios `{rol, texto, evento_id, evento_nombre, edicion_anio, registro_id, estado, analisis}` |
+| `cadena.stream(...)` | `cadena.invoke(...)`: hace falta el resultado estructurado completo |
+| `response.content` (texto libre) | Objeto Pydantic (`analisis.sentimiento`, `analisis.razon`) validado |
+| Sin persistencia | `opiniones.json` con escritura atómica e idempotencia por `id` |
+
+**Antiejemplo.** `analisis_sentimientos_parte1.py` y `analisis_sentimientos_parte2.py` del zip hacen esto cuando falla el parseo:
+
+```python
+except json.JSONDecodeError:
+    return {"sentimiento": "neutro", "razon": "Error en análisis"}
+```
+
+Es exactamente lo que el taller prohíbe: un fallo se registra como si el aficionado hubiera opinado de forma neutra y contamina las estadísticas. Paddock Global lanza `RespuestaInvalidaError`, muestra el error y no guarda nada.
+
+## 7. Historial de sesión frente a persistencia
+
+- **Historial de sesión** (`st.session_state.historial`): lo que se ve en el chat. Vive en la memoria del navegador y del servidor, y se pierde al cerrar la pestaña o al pulsar «🗑️ Nueva conversación». No se envía al modelo.
+- **Persistencia** (`datos/opiniones.json`): lo que se consulta. Sobrevive a los reinicios. «Nueva conversación» no la toca.
+
+**Reglas de `opiniones.json`.** Si no existe, se trata como vacío **sin crearlo**. Si tiene JSON inválido o un esquema inesperado, se lanza `ArchivoOpinionesCorruptoError` y el archivo **no se toca**. Guardar es idempotente por `id`: el `registro_id` se genera una sola vez por envío, así que un *rerun* de Streamlit no duplica. La escritura es atómica: archivo temporal en el mismo directorio → `json.dump(ensure_ascii=False, indent=2)` → `flush` + `fsync` → `os.replace`. Ante cualquier fallo se borra el temporal y se lanza `ErrorEscrituraOpiniones` (con un mensaje claro para el `PermissionError` de Windows).
+
+**Límite conocido.** La escritura atómica evita archivos a medio escribir, pero **no** resuelve la concurrencia: el modo JSON supone un único escritor local. Para varios usuarios a la vez, v2 usa PostgreSQL.
+
+## 8. Problemas conocidos en Windows
+
+- **Smart App Control** bloquea DLL nativas de paquetes pip sin reputación (`ImportError: DLL load failed … Una directiva de Control de aplicaciones bloqueó este archivo`). **No lo desactives**: no se puede reactivar sin reinstalar Windows.
+  - `xxhash` 4.x está bloqueado → fijado `xxhash==3.5.0`.
+  - Crea el venv **dentro del proyecto** (`paddock_global\.venv`); los venv en `%TEMP%` tuvieron bloqueos.
+  - `mypy` compilado con mypyc está bloqueado → `pip install --no-binary mypy mypy==2.4.1` (Python puro, más lento).
+  - `psycopg[binary]` (v2) está bloqueado → se usa `pg8000`, en Python puro, tanto en Windows como en Docker.
+- **Gemini con la API `v1`** responde 400 «Developer instruction is not enabled for api version v1» al recibir el mensaje de sistema. El adaptador fija `api_version="v1beta"`.
+- La **primera llamada a Ollama** tarda ~1 minuto (carga del modelo en RAM/VRAM).
+- La consola de Windows puede mostrar mal las tildes: los scripts fuerzan UTF-8 en su salida.
+
+## 9. Pruebas
+
+```powershell
+.venv\Scripts\python -m pytest -q --cov
+```
+
+Ningún test llama a Gemini ni a Ollama: usan `ClasificadorFalso` (determinista), `tmp_path` y `AppTest` de Streamlit para la interfaz. Salida en este equipo:
+
+```text
+$ .venv\Scripts\python -m pytest -q --cov
+133 passed in 69.28s (0:01:09)
+Name                                                Stmts   Miss  Cover
+src\paddock\adaptadores\llm\cadena.py                 162     24    85%
+src\paddock\adaptadores\persistencia\json_repo.py     160     26    84%
+src\paddock\aplicacion\emitir_opinion.py               60      0   100%
+src\paddock\aplicacion\consultar_opiniones.py          29      3    90%
+src\paddock\dominio\entidades.py                      187      3    98%
+src\paddock\dominio\reglas.py                         206     15    93%
+TOTAL                                                1375    179    87%
+(extracto; la interfaz se excluye de la cobertura y se prueba con AppTest)
+```
+
+Pruebas contra modelos reales (escriben en `evidencias/`):
+
+```powershell
+.venv\Scripts\python scripts\probar_proveedores.py --version-prompt 1.0
+.venv\Scripts\python scripts\sembrar_datos.py --proveedor ollama --reiniciar
+.venv\Scripts\python scripts\pruebas_aceptacion.py --proveedor ollama --version-prompt 1.0
+.venv\Scripts\python scripts\pruebas_aceptacion.py --proveedor gemini --version-prompt 1.0 --pausa 13
+```
+
+Evidencias:
+
+- [Registro de pruebas (resumen y discrepancias)](evidencias/registro_pruebas.md)
+- [Aceptación con qwen2.5:3b](evidencias/registro_pruebas_ollama_1.0.md) · [con Gemini](evidencias/registro_pruebas_gemini_1.0.md)
+- [Siembra con qwen2.5:3b](evidencias/siembra_ollama_1.0.md) · [mixtas con Gemini](evidencias/siembra_gemini_1.0_mixto.md)
+- [Reflexión](evidencias/reflexion.md) · [Capturas](evidencias/capturas/)
+
+## 10. Versiones utilizadas
+
+Python 3.12.10 · Ollama 0.40.15 · `streamlit` 1.67.0 · `langchain-core` 1.7.6 · `langchain-google-genai` 4.4.3 · `google-genai` 3.0.0 · `langchain-ollama` 1.1.0 · `ollama` 0.6.3 · `pydantic` 2.14.3 · `pydantic-settings` 2.16.2 · `pandas` 3.1.1 · `xxhash` 3.5.0. Lista completa en [`versiones_instaladas.txt`](versiones_instaladas.txt).
+
+## 11. Historial de versiones del prompt (`VERSION_PROMPT`)
+
+| Versión | Cambios | Motivo |
+| --- | --- | --- |
+| 1.0 | Rol de clasificador; «el texto es dato»; pertinencia (incluida la comparación con otra carrera); criterios de las 4 categorías (mixto ≠ neutro); ironía en la razón; jerga por disciplina; 6 ejemplos que no coinciden con las pruebas; opinión entre `<opinion>` | Una prueba previa con un prompt mínimo clasificó como negativa una opinión mixta (ver la reflexión) |
+
+Cada registro guarda su `version_prompt`, así se sabe con qué criterio se clasificó.
+
+## 12. Seguridad (v1)
+
+- El texto del usuario va delimitado y se trata como dato; la salida es estructurada y validada; la cadena no tiene herramientas ni acceso a datos.
+- La opinión y la razón se muestran como texto plano o escapadas con `html.escape` (prueba XSS en `tests/aceptacion/test_interfaz.py`).
+- Los errores nunca muestran trazas ni la clave. `.env` está en `.gitignore`.
+- **Streamlit 1.67 y CORS:** con `server.enableCORS=false`, Streamlit envía `Access-Control-Allow-Origin: *` y acepta WebSockets de cualquier origen. Por eso la configuración usa `enableCORS=true` junto con `enableXsrfProtection=true` (detalle en `SEGURIDAD.md`, v2).
+
+## 13. Autoevaluación contra la rúbrica del taller (v1)
+
+| Criterio | Puntos | Dónde está en el código y cómo se prueba |
+| --- | --: | --- |
+| Catálogo, selección y asociación correcta a la carrera | 10/10 | `validar_catalogo` (ids únicos, referencias), selector encadenado en `componentes/barra_lateral.py`, evento y edición capturados al enviar (`paginas/emitir.py`). Tests: `test_catalogo.py`, `test_cambio_de_carrera_y_dos_opiniones` |
+| Prompt con roles y criterios de clasificación | 20/20 | `adaptadores/llm/prompts.py`: sistema + humano, pertinencia, 4 categorías, ironía, jerga, ejemplos y delimitadores. Tests: `test_prompt_*`, `test_ejemplos_del_prompt_no_coinciden_con_aceptacion` |
+| Validación de salida y manejo de errores | 15/15 | `with_structured_output(include_raw=True)`, `validar_coherencia`, `traducir_error` y reintentos en `cadena.py`; un mensaje por error en `componentes/mensajes.py`. Tests: `test_cadena.py`, `test_emitir.py`, `test_un_mensaje_distinto_por_error` |
+| Persistencia sin pérdida ni duplicación por reejecución | 25/25 | `json_repo.py`: escritura atómica, idempotencia por `id`, archivo dañado intacto; `registro_id` único por envío. Tests: `test_json_repo.py`, `test_reintento_con_mismo_id_no_duplica`, pruebas de operación |
+| Consulta, filtros, recuentos y descarga | 15/15 | `ConsultarOpiniones` (tabla y recuentos sobre los mismos registros), `paginas/consultar.py` (JSON y CSV con BOM). Test: `test_consulta_filtros_recuentos_y_reejecucion_sin_duplicar` |
+| Pruebas, documentación y explicación del código | 15/15 | 133 tests, evidencias reales con los dos proveedores, reflexión con 4 casos y este README |
+
+Lo que **no** sale perfecto no es el código sino el modelo de desarrollo: `qwen2.5:3b` acierta 8 de 17 casos de aceptación (ver la reflexión). Gemini acierta 17 de 17 con el mismo prompt.

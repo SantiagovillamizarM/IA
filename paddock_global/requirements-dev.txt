@@ -1,0 +1,10 @@
+# Tests y calidad (no se instalan en la imagen de producción)
+-r requirements.txt
+pytest==9.2.0
+pytest-cov==7.1.0
+httpx==0.28.1
+ruff==0.17.4
+# mypy: en Windows con Smart App Control la rueda compilada (mypyc) está bloqueada.
+# Instálala en Python puro con:  pip install --no-binary mypy mypy==2.4.1
+mypy==2.4.1
+pip-audit==2.10.1

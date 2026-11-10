@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paddock-global"
+version = "1.0.0"
+description = "Paddock Global: análisis de sentimientos LangChain de opiniones del mundo de las carreras"
+requires-python = ">=3.12"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+markers = [
+    "integracion: pruebas que usan SQLite o archivos reales",
+]
+
+[tool.coverage.run]
+source = ["src/paddock"]
+omit = ["src/paddock/interfaz/*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src", "tests", "scripts"]
+extend-exclude = ["legado_prototipo", "referencia_zip", "migraciones/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM"]
+ignore = ["S101", "S311", "B008", "S603", "S607"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106", "S108"]
+"src/paddock/adaptadores/llm/prompts.py" = ["E501"]
+"scripts/sembrar_datos.py" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+mypy_path = "src"
+explicit_package_bases = true
+ignore_missing_imports = true
+warn_unused_ignores = true
