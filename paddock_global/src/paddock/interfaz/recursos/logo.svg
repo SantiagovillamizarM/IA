@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="48" viewBox="0 0 240 48" role="img" aria-label="Paddock Global">
+  <defs>
+    <pattern id="c" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f4f4f4"/><rect width="4" height="4" fill="#111"/><rect x="4" y="4" width="4" height="4" fill="#111"/>
+    </pattern>
+  </defs>
+  <g transform="translate(4 6) skewX(-12)">
+    <rect x="6" y="2" width="32" height="24" rx="3" fill="url(#c)"/>
+    <rect x="6" y="2" width="32" height="24" rx="3" fill="none" stroke="#e10600" stroke-width="2"/>
+  </g>
+  <rect x="9" y="32" width="3" height="12" fill="#9ba0aa"/>
+  <text x="52" y="27" font-family="Titillium Web, Segoe UI, sans-serif" font-size="22" font-weight="900" font-style="italic" fill="#e10600" letter-spacing="0.5">PADDOCK</text>
+  <text x="53" y="44" font-family="Titillium Web, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#9ba0aa" letter-spacing="5">GLOBAL</text>
+</svg>

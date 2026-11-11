@@ -51,7 +51,7 @@ def enviar(at: AppTest, texto: str) -> AppTest:
 
 def test_portada_titulo_y_selector_por_defecto(app):
     at, _ = app
-    assert at.title[0].value == "🏁 Paddock Global"
+    assert any("pg-hero" in m.value and "Paddock <span>Global</span>" in m.value for m in at.markdown)
     assert at.sidebar.selectbox(key="sel_evento").value == "ev-f1-monaco"
     etiquetas = [s.label for s in at.sidebar.selectbox]
     assert etiquetas == ["Disciplina", "Campeonato", "Carrera", "Edición (año)"]

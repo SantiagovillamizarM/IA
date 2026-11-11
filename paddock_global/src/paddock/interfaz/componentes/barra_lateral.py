@@ -59,17 +59,20 @@ def selector_evento(cat: Catalogo) -> Seleccion:
 
 
 def ficha_evento(sel: Seleccion) -> None:
+    from paddock.interfaz.componentes.tarjetas import e
+
     ev = sel.evento
-    st.markdown(f"**{sel.disciplina.icono} {sel.disciplina.nombre}**")
-    st.markdown(f"📍 {ev.pais} · {ev.sede}")
-    if ev.historico:
-        st.markdown("🏛️ *Prueba histórica: ya no se disputa en su formato clásico.*")
+    historica = "<br>🏛️ <i>Prueba histórica: ya no se disputa en su formato clásico.</i>" if ev.historico else ""
+    edicion = f" · edición <b>{sel.edicion_anio}</b>" if sel.edicion_anio else ""
+    st.markdown(f'<div class="pg-ficha">{e(sel.disciplina.icono)} <b>{e(sel.disciplina.nombre)}</b>{edicion}'
+                f"<br>📍 {e(ev.pais)} · {e(ev.sede)}{historica}</div>", unsafe_allow_html=True)
 
 
 def estado_llm() -> None:
     aj = recursos.contenedor().ajustes
     ok, msg = recursos.estado_proveedor()
-    st.markdown(f"{'🟢' if ok else '🔴'} **Modelo:** `{aj.modelo_activo}`")
+    st.markdown('<div class="pg-lateral-tit">Modelo</div>', unsafe_allow_html=True)
+    st.markdown(f"{'🟢' if ok else '🔴'} <span class='pg-modelo'>{aj.modelo_activo}</span>", unsafe_allow_html=True)
     if not ok:
         st.caption(msg)
     st.caption(f"Prompt v{aj.VERSION_PROMPT} · temperatura {aj.LLM_TEMPERATURE:g} (solo lectura, desde .env)")
@@ -90,7 +93,7 @@ def _usuario() -> None:
 def render() -> Seleccion:
     with st.sidebar:
         _usuario()
-        st.markdown("### 🏁 Carrera")
+        st.markdown('<div class="pg-lateral-tit">🏁 Carrera</div>', unsafe_allow_html=True)
         sel = selector_evento(recursos.catalogo())
         ficha_evento(sel)
         st.divider()

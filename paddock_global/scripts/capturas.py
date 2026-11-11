@@ -123,6 +123,10 @@ async def capturar(url: str, salida: Path, esperar: list[str], escribir: list[st
                 if not await cdp.esperar_texto(t):
                     print(f"Aviso: no apareció «{t}»")
             for texto in escribir:
+                for _ in range(40):  # espera a que exista el cuadro de chat
+                    if await cdp.evaluar("!!document.querySelector('textarea')"):
+                        break
+                    await asyncio.sleep(0.5)
                 rect = await cdp.evaluar(
                     "(() => {const r = document.querySelector('textarea')"
                     ".getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2];})()")

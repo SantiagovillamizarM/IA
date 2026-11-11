@@ -17,7 +17,7 @@ if str(_SRC) not in sys.path:
 import streamlit as st  # noqa: E402
 
 from paddock.dominio.enums import Rol  # noqa: E402
-from paddock.interfaz.componentes import barra_lateral, estilos, recursos, sesion  # noqa: E402
+from paddock.interfaz.componentes import barra_lateral, estilos, marca, recursos, sesion  # noqa: E402
 
 PAGINAS = Path(__file__).resolve().parent / "paginas"
 
@@ -54,9 +54,10 @@ def paginas() -> dict[str, list[st.Page]]:
 def main() -> None:
     st.set_page_config(page_title="Paddock Global", page_icon="🏁", layout="wide")
     estilos.inyectar()
+    marca.logotipo()
     nav = st.navigation(paginas(), expanded=True)  # sin «N more»: Gestión siempre visible
-    st.title("🏁 Paddock Global")
-    st.caption("Análisis de sentimientos LangChain · opiniones del mundo de las carreras")
+    listo, _ = recursos.estado_proveedor()
+    marca.cabecera(modelo_listo=listo, compacta=nav.title != "Inicio")
     barra_lateral.render()
     nav.run()
 

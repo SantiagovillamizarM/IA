@@ -49,27 +49,30 @@ def chips_aspectos(aspectos: list[dict[str, str]] | None) -> str:
 
 
 def tarjeta_resultado(analisis: dict[str, Any], modelo: str, estado: str) -> None:
-    """Tarjeta con sentimiento, emoji y razón; en v2, además aspectos, ironía, intensidad y entidades."""
+    """Tarjeta con cabecera del color del sentimiento (como una bandera de pista), razón y detalles de v2."""
     s = analisis.get("sentimiento")
+    intensidad = analisis.get("intensidad")
+    barra = ""
+    if intensidad:
+        n = int(intensidad)
+        barra = f"<small>intensidad {'■' * n}{'□' * (5 - n)}</small>"
     partes = [
         f'<div class="pg-tarjeta pg-s-{e(s)}">',
-        f'<div class="pg-titulo">{e(etiqueta_sentimiento(s))}</div>',
+        f'<div class="pg-tarjeta-cab"><span>{e(etiqueta_sentimiento(s))}</span>{barra}</div>',
+        '<div class="pg-tarjeta-cuerpo">',
         f'<div class="pg-razon">{e(analisis.get("razon", ""))}</div>',
     ]
     chips = chips_aspectos(analisis.get("aspectos"))
     if chips:
-        partes.append(f'<div style="margin-top:0.5rem">{chips}</div>')
+        partes.append(f'<div style="margin-top:0.55rem">{chips}</div>')
     extra = []
     if analisis.get("ironia"):
         extra.append("🎭 Ironía detectada")
-    if analisis.get("intensidad"):
-        n = int(analisis["intensidad"])
-        extra.append(f"Intensidad {'●' * n}{'○' * (5 - n)} ({n}/5)")
     if analisis.get("entidades"):
         extra.append("Menciona: " + ", ".join(analisis["entidades"]))
     if extra:
         partes.append(f'<div class="pg-pie">{e(" · ".join(extra))}</div>')
-    partes.append(f'<div class="pg-pie">{e(estado)} · clasificado por {e(modelo)}</div></div>')
+    partes.append(f'<div class="pg-pie">{e(estado)} · clasificado por {e(modelo)}</div></div></div>')
     st.markdown("".join(partes), unsafe_allow_html=True)
 
 
